@@ -10,7 +10,7 @@
         { "key": "NODE_ENV", "value": "production" },
         { "key": "DATABASE_URL", "sync": false },
         { "key": "JWT_SECRET", "sync": false },
-        { "key": "SITE_URL", "value": "https://taklifnomachi.online" },
+        { "key": "SITE_URL", "value": "https://taklifnomachi.onrender.com" },
         { "key": "BOT_TOKEN", "sync": false }
       ]
     }

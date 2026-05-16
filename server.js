@@ -185,7 +185,7 @@ app.post('/api/invitations', authMiddleware, async (req, res) => {
       else names = transliterate(data.eventName || '');
 
       slug = `${category}/${names}/${uid}`;
-      link = `${process.env.SITE_URL || 'https://taklifnomachi.online'}/${slug}`;
+      link = `${process.env.SITE_URL}/${slug}`;
     } else {
       // Pullik shablon
       if (customSlug) {
@@ -359,7 +359,7 @@ app.post('/api/invitations/set-slug', authMiddleware, async (req, res) => {
     const existing = await sql`SELECT id FROM invitations WHERE slug = ${customSlug} AND id != ${invitationId}`;
     if (existing.length > 0) return res.status(409).json({ error: 'Bu slug band' });
 
-    const link = `${process.env.SITE_URL || 'https://taklifnomachi.online'}/${customSlug}`;
+    const link = `${process.env.SITE_URL}/${customSlug}`;
     await sql`UPDATE invitations SET slug = ${customSlug}, link = ${link} WHERE id = ${invitationId}`;
 
     res.json({ link, slug: customSlug });
