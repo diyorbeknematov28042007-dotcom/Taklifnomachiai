@@ -259,23 +259,79 @@ function TemplatesPage() {
 // ==================== PREVIEW ====================
 function PreviewPage() {
   const { id } = useParams();
-  const { t, lang } = useApp();
+  const { t, lang, user, navigate } = useApp();
   const [tpl, setTpl] = useState(null);
   useEffect(() => { api.getTemplate(id).then(d => setTpl(d.template)).catch(() => {}); }, [id]);
   if (!tpl) return <div className="loading">{t.loading}</div>;
+
   const sample = typeof tpl.sample_data === 'string' ? JSON.parse(tpl.sample_data || '{}') : (tpl.sample_data || {});
-  const cn = catNames(t);
+  const name = lang === 'uz' ? tpl.name_uz : tpl.name_ru;
+  const tag = lang === 'uz' ? tpl.tag_uz : tpl.tag_ru;
+
+  // Sample data'ni shablon uchun tayyorlash
+  const sampleData = {};
+  if (tpl.category === 'wedding') {
+    sampleData.groomName = sample.name1 || 'Ali';
+    sampleData.brideName = sample.name2 || 'Zarina';
+    sampleData.date = sample.date || '2026-06-15';
+    sampleData.time = '18:00';
+    sampleData.mainText = lang === 'uz'
+      ? '"Aziz mehmonlarimiz, hayotimizdagi eng muhim kunni siz bilan birga nishonlashdan baxtiyor bo\'lamiz."'
+      : '"Дорогие гости, мы будем счастливы разделить с вами самый важный день в нашей жизни."';
+    sampleData.address = sample.loc || 'Toshkent sh., Yunusobod t.';
+    sampleData.venueName = 'Namuna to\'yxonasi';
+    sampleData.cardNumber = '8600 1234 5678 9012';
+  } else if (tpl.category === 'birthday') {
+    sampleData.birthdayPerson = sample.person || 'Aziza';
+    sampleData.birthdayDate = sample.date || '2026-08-10';
+    sampleData.birthdayText = lang === 'uz'
+      ? '"Hayotning yana bir go\'zal yili boshlanyapti! Birga nishonlaymiz!"'
+      : '"Ещё один прекрасный год начинается! Отметим вместе!"';
+    sampleData.birthdayAddress = 'Toshkent sh., Chilonzor t.';
+  } else if (tpl.category === 'love') {
+    sampleData.loveFrom = sample.from || 'Jasur';
+    sampleData.loveTo = sample.to || 'Madina';
+    sampleData.loveText = sample.text || (lang === 'uz'
+      ? 'Seni birinchi ko\'rganimda, dunyoda eng go\'zal narsani ko\'rgandek his qildim.\n\nSen mening hayotimga kirganingda, hammasi o\'zgardi.\n\nSeni sevaman. Doimo.'
+      : 'Когда я впервые тебя увидел, я понял что нашёл самое прекрасное в мире.\n\nЛюблю тебя. Всегда.');
+  } else if (tpl.category === 'event') {
+    sampleData.eventName = sample.name || 'IT Conference 2026';
+    sampleData.eventDesc = sample.sub || (lang === 'uz' ? 'Eng so\'nggi texnologiyalar haqida' : 'О новейших технологиях');
+    sampleData.time = sample.date || '2026-10-15';
+    sampleData.address = sample.loc || 'Toshkent, IT Park';
+  }
+
+  const TemplateComponent = getTemplateComponent(tpl.id, tpl.category);
 
   return (
-    <div style={{ padding:'16px 20px' }}>
-      <div style={{ fontSize:12, color:'var(--text2)', textAlign:'center', marginBottom:12 }}>{lang==='uz'?tpl.name_uz:tpl.name_ru}</div>
-      <div className="inv-full fu" style={{ background:tpl.bg_style, color:tpl.text_color }}>
-        <div className="inv-cat-label">{cn[tpl.category]}</div>
-        {tpl.category==='wedding'&&sample&&(<><div className="inv-names">{sample.name1}</div><div className="inv-amp">&</div><div className="inv-names">{sample.name2}</div><div className="inv-line" style={{background:tpl.text_color}}/><div className="inv-detail">📅 {sample.date}</div></>)}
-        {tpl.category==='birthday'&&sample&&(<><div className="inv-names">{sample.person}</div><div style={{fontSize:16,opacity:.7,marginTop:4}}>{sample.age}</div></>)}
-        {tpl.category==='event'&&sample&&(<><div className="inv-names" style={{fontSize:26}}>{sample.name}</div><div className="inv-text">{sample.sub}</div><div className="inv-detail">📅 {sample.date}</div><div className="inv-detail">📍 {sample.loc}</div></>)}
-        {tpl.category==='love'&&sample&&(<div className="inv-names">{sample.text}</div>)}
+    <div>
+      {/* Preview header */}
+      <div style={{ padding:'12px 20px', background:'var(--white)', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between', position:'sticky', top:52, zIndex:10 }}>
+        <div>
+          <div style={{ fontSize:14, fontWeight:600 }}>{name}</div>
+          <div style={{ fontSize:11, color:'var(--text3)' }}>{tag} • {tpl.is_free ? (lang==='uz'?'Bepul':'Бесплатно') : tpl.price?.toLocaleString() + ' so\'m'}</div>
+        </div>
+        <button onClick={() => {
+          if (!user) navigate(`/auth?redirect=/create/${tpl.category}/${tpl.id}`);
+          else navigate(`/create/${tpl.category}/${tpl.id}`);
+        }} style={{
+          padding:'10px 20px', borderRadius:10, border:'none',
+          background:'var(--purple)', color:'#fff',
+          fontFamily:'Inter,sans-serif', fontSize:13, fontWeight:600, cursor:'pointer',
+        }}>✨ {t.create}</button>
       </div>
+
+      {/* Real template preview */}
+      {TemplateComponent ? (
+        <Suspense fallback={<div className="loading">{t.loading}</div>}>
+          <TemplateComponent data={sampleData} onRespond={() => {}} sent={false} lang={lang} />
+        </Suspense>
+      ) : (
+        <div className="empty-state">
+          <div className="empty-state-icon">📄</div>
+          <div className="empty-state-title">{lang==='uz'?'Preview mavjud emas':'Превью недоступно'}</div>
+        </div>
+      )}
     </div>
   );
 }
