@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bosqich 3 — Tekshirish</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,system-ui,sans-serif;background:#f8f9fa;padding:16px;max-width:480px;margin:0 auto}
+h1{font-size:20px;margin-bottom:16px;text-align:center}
+.test{background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:8px;border:1px solid #e5e7eb;display:flex;align-items:center;gap:10px}
+.icon{font-size:18px;width:28px;text-align:center;flex-shrink:0}
+.info{flex:1}
+.name{font-size:14px;font-weight:600;color:#1a1a1a}
+.detail{font-size:12px;color:#666;margin-top:2px}
+.pending .icon::after{content:'⏳'}
+.pass .icon::after{content:'✅'}
+.fail .icon::after{content:'❌'}
+.warn .icon::after{content:'⚠️'}
+.summary{background:#fff;border-radius:12px;padding:20px;margin-top:16px;text-align:center;border:1px solid #e5e7eb}
+.summary h2{font-size:18px;margin-bottom:12px}
+.counts{display:flex;justify-content:center;gap:20px;font-size:14px}
+.counts span{font-weight:700}
+.btn{display:block;width:100%;padding:14px;background:#7c3aed;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;margin-top:16px;font-family:inherit}
+.btn:disabled{opacity:.5}
+</style>
+</head>
+<body>
+<h1>🧪 Bosqich 3 — Shablonlar tizimi</h1>
+<div id="tests"></div>
+<div class="summary" id="summary" style="display:none">
+<h2 id="verdict"></h2>
+<div class="counts">
+<div>✅ <span id="passC">0</span></div>
+<div>❌ <span id="failC">0</span></div>
+<div>⚠️ <span id="warnC">0</span></div>
+</div>
+</div>
+<button class="btn" id="runBtn" onclick="runTests()">🚀 Testlarni ishga tushirish</button>
+
+<script>
+var BASE=window.location.origin, pass=0, fail=0, warn=0;
+function addTest(n){var d=document.createElement("div");d.className="test pending";d.innerHTML='<div class="icon"></div><div class="info"><div class="name">'+n+'</div><div class="detail">Tekshirilmoqda...</div></div>';document.getElementById("tests").appendChild(d);return d}
+function setR(d,s,t){d.className="test "+s;d.querySelector(".detail").textContent=t;if(s==="pass")pass++;else if(s==="fail")fail++;else warn++}
+
+async function runTests(){
+  document.getElementById("runBtn").disabled=true;
+  document.getElementById("tests").innerHTML="";
+  document.getElementById("summary").style.display="none";
+  pass=0;fail=0;warn=0;
+
+  // 1. Templates API
+  var t1=addTest("Templates API ishlayaptimi");
+  var tpls=[];
+  try{
+    var r=await fetch(BASE+"/api/templates");
+    var d=await r.json();
+    tpls=d.templates||[];
+    if(tpls.length>0) setR(t1,"pass",tpls.length+" ta shablon topildi");
+    else setR(t1,"fail","Shablonlar yoq");
+  }catch(e){setR(t1,"fail",e.message)}
+
+  // 2. Kategoriyalar
+  var t2=addTest("Barcha kategoriyalar mavjud");
+  var cats=new Set(tpls.map(function(t){return t.category}));
+  var need=["wedding","birthday","love","event"];
+  var missing=need.filter(function(c){return !cats.has(c)});
+  if(missing.length===0) setR(t2,"pass","wedding, birthday, love, event — barchasi bor");
+  else setR(t2,"warn","Yoq kategoriyalar: "+missing.join(", "));
+
+  // 3. Wedding shablonlar soni
+  var t3=addTest("Toy shablonlari (kamida 3)");
+  var wCount=tpls.filter(function(t){return t.category==="wedding"}).length;
+  if(wCount>=3) setR(t3,"pass",wCount+" ta toy shabloni");
+  else if(wCount>0) setR(t3,"warn",wCount+" ta (3 ta kerak)");
+  else setR(t3,"fail","Toy shablonlari yoq");
+
+  // 4. Birthday shablonlar
+  var t4=addTest("Tugulgan kun shablonlari (kamida 2)");
+  var bCount=tpls.filter(function(t){return t.category==="birthday"}).length;
+  if(bCount>=2) setR(t4,"pass",bCount+" ta");
+  else if(bCount>0) setR(t4,"warn",bCount+" ta (2 ta kerak)");
+  else setR(t4,"fail","Birthday shablonlari yoq");
+
+  // 5. Love shablonlar
+  var t5=addTest("Dil izhori shablonlari (kamida 1)");
+  var lCount=tpls.filter(function(t){return t.category==="love"}).length;
+  if(lCount>=1) setR(t5,"pass",lCount+" ta");
+  else setR(t5,"fail","Love shablonlari yoq");
+
+  // 6. Event shablonlar
+  var t6=addTest("Tadbir shablonlari (kamida 1)");
+  var eCount=tpls.filter(function(t){return t.category==="event"}).length;
+  if(eCount>=1) setR(t6,"pass",eCount+" ta");
+  else setR(t6,"fail","Event shablonlari yoq");
+
+  // 7. Bepul shablonlar mavjud
+  var t7=addTest("Bepul shablonlar bormi");
+  var freeCount=tpls.filter(function(t){return t.is_free}).length;
+  if(freeCount>0) setR(t7,"pass",freeCount+" ta bepul shablon");
+  else setR(t7,"fail","Bepul shablonlar yoq!");
+
+  // 8. Pullik shablonlar
+  var t8=addTest("Pullik shablonlar bormi");
+  var paidCount=tpls.filter(function(t){return !t.is_free}).length;
+  if(paidCount>0) setR(t8,"pass",paidCount+" ta pullik shablon");
+  else setR(t8,"warn","Pullik shablonlar yoq (monetizatsiya uchun kerak)");
+
+  // 9. Template'da sample_data bor
+  var t9=addTest("Shablonlarda sample_data mavjud");
+  var withSample=tpls.filter(function(t){return t.sample_data&&t.sample_data!=="{}"}).length;
+  if(withSample===tpls.length) setR(t9,"pass","Barcha "+withSample+" ta shablonda sample_data bor");
+  else setR(t9,"warn",withSample+"/"+tpls.length+" tashida sample_data bor");
+
+  // 10. Preview sahifasi
+  var t10=addTest("Preview sahifasi ishlayaptimi");
+  if(tpls.length>0){
+    try{
+      var r=await fetch(BASE+"/preview/"+tpls[0].id);
+      if(r.ok) setR(t10,"pass","/preview/"+tpls[0].id+" — 200 OK");
+      else setR(t10,"fail","Status: "+r.status);
+    }catch(e){setR(t10,"fail",e.message)}
+  } else setR(t10,"warn","Shablonlar yoq, preview test otkazilmadi");
+
+  // 11. Kategoriya filtrlash
+  var t11=addTest("Kategoriya bo'yicha filtrlash");
+  try{
+    var r=await fetch(BASE+"/api/templates?category=wedding");
+    var d=await r.json();
+    var allW=d.templates.every(function(t){return t.category==="wedding"});
+    if(allW&&d.templates.length>0) setR(t11,"pass","Faqat wedding qaytdi ("+d.templates.length+" ta)");
+    else if(d.templates.length===0) setR(t11,"warn","Wedding kategoriyada shablon yoq");
+    else setR(t11,"fail","Boshqa kategoriya ham qaytdi");
+  }catch(e){setR(t11,"fail",e.message)}
+
+  // 12. Template detail API
+  var t12=addTest("Template detail /api/templates/:id");
+  if(tpls.length>0){
+    try{
+      var r=await fetch(BASE+"/api/templates/"+tpls[0].id);
+      var d=await r.json();
+      if(d.template&&d.template.id) setR(t12,"pass","ID: "+d.template.id+", "+d.template.name_uz);
+      else setR(t12,"fail","Notogrri javob");
+    }catch(e){setR(t12,"fail",e.message)}
+  } else setR(t12,"warn","Shablon yoq");
+
+  // NATIJA
+  document.getElementById("summary").style.display="block";
+  document.getElementById("passC").textContent=pass;
+  document.getElementById("failC").textContent=fail;
+  document.getElementById("warnC").textContent=warn;
+  document.getElementById("verdict").textContent=fail===0?"🎉 Bosqich 3 TAYYOR!":"🔧 "+fail+" ta xato tuzatish kerak";
+  document.getElementById("runBtn").disabled=false;
+  document.getElementById("runBtn").textContent="🔄 Qayta tekshirish";
+}
+</script>
+</body>
+</html>
