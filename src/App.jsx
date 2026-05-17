@@ -535,8 +535,6 @@ function ViewInvPage() {
     </div>
   );
 }
-  );
-}
 
 // ==================== PROFILE ====================
 function ProfilePage() {
