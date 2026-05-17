@@ -75,17 +75,63 @@ function Header({ toggleLang }) {
   );
 }
 
+// ==================== SCROLL TO TOP ====================
+function ScrollToTop() {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setShow(window.scrollY > 300);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+  return (
+    <button className={`scroll-top ${show ? 'visible' : ''}`} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 14V4m0 0L4 9m5-5l5 5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+    </button>
+  );
+}
+
+// ==================== FOOTER ====================
+function Footer() {
+  const { t, lang } = useApp();
+  return (
+    <div className="footer">
+      <div className="footer-brand">{t.brand}<span>{t.brandDot}</span></div>
+      <div className="footer-desc">{lang === 'uz' ? "To'y, tug'ilgan kun, tadbir va dil izhorlari uchun raqamli taklifnomalar" : 'Цифровые приглашения на свадьбу, день рождения и мероприятия'}</div>
+      <div className="footer-social">
+        <a href="https://t.me/taklifnomachi" target="_blank" rel="noopener">✈️</a>
+        <a href="https://instagram.com/taklifnomachi" target="_blank" rel="noopener">📸</a>
+      </div>
+      <div className="footer-copy">© {new Date().getFullYear()} Taklifnomachi.online</div>
+    </div>
+  );
+}
+
 // ==================== HOME ====================
 function Home() {
   const { t, lang, navigate } = useApp();
   const [templates, setTemplates] = useState([]);
-  useEffect(() => { api.getTemplates().then(d => setTemplates(d.templates)).catch(() => {}); }, []);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    api.getTemplates().then(d => { setTemplates(d.templates); setLoading(false); }).catch(() => setLoading(false));
+  }, []);
 
   const cats = [
     { key:'wedding', icon:'💍', label:t.catWedding, sub:t.catWeddingSub },
     { key:'birthday', icon:'🎂', label:t.catBirthday, sub:t.catBirthdaySub },
     { key:'event', icon:'🔎', label:t.catEvent, sub:t.catEventSub },
     { key:'love', icon:'❤️', label:t.catLove, sub:t.catLoveSub },
+  ];
+
+  const steps = lang === 'uz' ? [
+    { n:'1', t:'Shablon tanlang', d:"O'zingizga yoqqan dizaynni tanlang" },
+    { n:'2', t:"Ma'lumot kiriting", d:"Ism, sana, manzil va boshqa tafsilotlar" },
+    { n:'3', t:'Link oling', d:"Tayyor linkni do'stlaringizga yuboring" },
+    { n:'4', t:'Javoblarni kuzating', d:"Kim keladi, kim kelmaydi — barchasini ko'ring" },
+  ] : [
+    { n:'1', t:'Выберите шаблон', d:'Найдите дизайн по душе' },
+    { n:'2', t:'Заполните данные', d:'Имена, дата, место и детали' },
+    { n:'3', t:'Получите ссылку', d:'Отправьте друзьям и родным' },
+    { n:'4', t:'Следите за ответами', d:'Кто придёт, кто нет — всё видно' },
   ];
 
   return (
@@ -118,13 +164,43 @@ function Home() {
           <div className="feat" key={i}><div className="feat-icon">{f.i}</div><div className="feat-text">{f.t}</div><div className="feat-sub">{f.s}</div></div>
         ))}
       </div>
+
+      {/* Qanday ishlaydi */}
+      <div className="sec-hdr fu fu5">
+        <div className="sec-title">{lang==='uz'?'Qanday ishlaydi?':'Как это работает?'}</div>
+      </div>
+      <div className="steps fu fu5">
+        {steps.map(s => (
+          <div className="step" key={s.n}>
+            <div className="step-num">{s.n}</div>
+            <div className="step-info"><div className="step-title">{s.t}</div><div className="step-desc">{s.d}</div></div>
+          </div>
+        ))}
+      </div>
+
       <div className="sec-hdr fu fu5">
         <div className="sec-title">{t.popularTemplates}</div>
         <Link to="/templates/wedding" className="sec-link">{t.viewAll} →</Link>
       </div>
-      <div className="tpl-grid fu fu5">
-        {templates.slice(0, 4).map(tp => <TplCard key={tp.id} tp={tp} />)}
-      </div>
+
+      {loading ? (
+        <div className="tpl-grid" style={{padding:'0 20px 30px'}}>
+          {[1,2,3,4].map(i => <div key={i} className="skel-card" />)}
+        </div>
+      ) : templates.length > 0 ? (
+        <div className="tpl-grid fu fu5">
+          {templates.slice(0, 4).map(tp => <TplCard key={tp.id} tp={tp} />)}
+        </div>
+      ) : (
+        <div className="empty-state">
+          <div className="empty-state-icon">📭</div>
+          <div className="empty-state-title">{lang==='uz'?'Shablonlar hali qo\'shilmagan':'Шаблоны пока не добавлены'}</div>
+          <div className="empty-state-sub">{lang==='uz'?'Admin paneldan shablon qo\'shing':'Добавьте шаблоны из админ-панели'}</div>
+        </div>
+      )}
+
+      <Footer />
+      <ScrollToTop />
     </div>
   );
 }
