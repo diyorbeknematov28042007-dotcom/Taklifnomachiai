@@ -1,8 +1,8 @@
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, createContext, useContext, Suspense } from 'react';
 import { Routes, Route, Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { T, catNames } from './lib/i18n';
 import * as api from './lib/api';
-import WeddingTemplate1 from './templates/WeddingTemplate1';
+import { getTemplateComponent } from './templates/templateRegistry';
 
 const AppContext = createContext();
 function useApp() { return useContext(AppContext); }
@@ -455,63 +455,30 @@ function ViewInvPage() {
 
   const d = typeof inv.data === 'string' ? JSON.parse(inv.data) : inv.data;
 
-  const [rsvp, setRsvp] = useState('');
-  const [guests, setGuests] = useState(1);
-  const [msg, setMsg] = useState('');
-  const [name, setName] = useState('');
-
   const handleRespond = async ({ rsvp, guestCount, message, senderName }) => {
     try { await api.sendResponse(inv.id, rsvp, guestCount, message, senderName); setSent(true); }
     catch (e) { alert(e.message); }
   };
 
-  // To'y kategoriyasi — chiroyli shablon
-  if (inv.category === 'wedding') {
-    return <WeddingTemplate1 data={d} onRespond={handleRespond} sent={sent} lang={lang} />;
+  // Registry'dan shablon komponentini top
+  const TemplateComponent = getTemplateComponent(inv.template_id, inv.category);
+
+  if (TemplateComponent) {
+    return (
+      <Suspense fallback={<div className="loading">{t.loading}</div>}>
+        <TemplateComponent data={d} invitation={inv} onRespond={handleRespond} sent={sent} lang={lang} />
+      </Suspense>
+    );
   }
 
-  // Boshqa kategoriyalar — oddiy ko'rinish
-  const cn = catNames(t);
-  const showRsvp = inv.category !== 'love';
-  const iStyle = { width:'100%', padding:10, borderRadius:8, background:'rgba(255,255,255,0.1)', border:'1px solid rgba(255,255,255,0.2)', color:'inherit', fontFamily:'Inter,sans-serif', fontSize:13, marginBottom:10, outline:'none', boxSizing:'border-box' };
-
+  // Fallback — shablon topilmadi
   return (
-    <div style={{ padding:'0 20px 30px' }}>
-      <div className="inv-full fu" style={{ background:inv.bg_style || 'linear-gradient(135deg,#667eea,#764ba2)', color:inv.text_color || '#fff' }}>
-        <div className="inv-cat-label">{cn[inv.category]}</div>
-        {inv.category==='birthday'&&(<>
-          <div className="inv-names">{d.birthdayPerson}</div><div className="inv-line" style={{background:inv.text_color||'#fff'}}/>
-          <div className="inv-text">{d.birthdayText}</div><div className="inv-detail">📅 {d.birthdayDate}</div><div className="inv-detail">📍 {d.birthdayAddress}</div>
-        </>)}
-        {inv.category==='event'&&(<>
-          <div className="inv-names" style={{fontSize:26}}>{d.eventName}</div><div className="inv-line" style={{background:inv.text_color||'#fff'}}/>
-          <div className="inv-text">{d.eventDesc}</div><div className="inv-detail">📅 {d.time}</div><div className="inv-detail">📍 {d.address}</div>
-        </>)}
-        {inv.category==='love'&&(<>
-          <div style={{fontSize:14,opacity:.6}}>{d.loveFrom}</div><div style={{fontSize:48,margin:'12px 0'}}>❤️</div>
-          <div style={{fontSize:14,opacity:.6}}>{d.loveTo}</div><div className="inv-line" style={{background:inv.text_color||'#fff'}}/><div className="inv-text">{d.loveText}</div>
-        </>)}
-        <div style={{ marginTop:28, paddingTop:24, borderTop:'1px solid rgba(255,255,255,0.15)', width:'100%' }}>
-          <div style={{ fontSize:15, fontWeight:700, marginBottom:16, textAlign:'center' }}>{t.sendResponse}</div>
-          {sent ? <div style={{ textAlign:'center', padding:20, opacity:.8 }}>✅ {t.responseSent}</div> : (<>
-            <input style={iStyle} placeholder={t.yourName} value={name} onChange={e=>setName(e.target.value)}/>
-            {showRsvp&&(<>
-              <div style={{ display:'flex', gap:8, justifyContent:'center', marginBottom:12 }}>
-                {['attending','notAttending','maybe'].map(o=>(
-                  <button key={o} onClick={()=>setRsvp(o)} style={{ padding:'8px 14px', borderRadius:10, fontFamily:'Inter,sans-serif', fontSize:12, fontWeight:600, cursor:'pointer', border:`1.5px solid ${rsvp===o?'rgba(255,255,255,0.6)':'rgba(255,255,255,0.2)'}`, background:rsvp===o?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.05)', color:'inherit' }}>{t[o]}</button>
-                ))}
-              </div>
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:10, marginBottom:12 }}>
-                <span style={{ fontSize:13, opacity:.7 }}>{t.guestCount}:</span>
-                <input type="number" min="1" max="20" value={guests} onChange={e=>setGuests(+e.target.value)} style={{ width:56, padding:8, textAlign:'center', borderRadius:8, background:'rgba(255,255,255,0.1)', border:'1px solid rgba(255,255,255,0.2)', color:'inherit', fontFamily:'Inter,sans-serif', outline:'none' }}/>
-              </div>
-            </>)}
-            <textarea placeholder={t.responsePlaceholder} value={msg} onChange={e=>setMsg(e.target.value)} style={{ ...iStyle, minHeight:60, resize:'none', marginBottom:12 }}/>
-            <button onClick={()=>handleRespond({rsvp:rsvp||null,guestCount:guests,message:msg,senderName:name})} style={{ width:'100%', padding:12, border:'none', borderRadius:10, background:'rgba(255,255,255,0.2)', fontFamily:'Inter,sans-serif', fontSize:14, fontWeight:600, cursor:'pointer', color:'inherit' }}>✈️ {t.send}</button>
-          </>)}
-        </div>
-      </div>
+    <div style={{textAlign:'center',padding:'60px 20px'}}>
+      <div style={{fontSize:48,marginBottom:12}}>📄</div>
+      <div style={{fontSize:16,fontWeight:600,color:'var(--text2)'}}>{lang==='uz'?'Shablon topilmadi':'Шаблон не найден'}</div>
     </div>
+  );
+}
   );
 }
 
