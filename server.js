@@ -455,52 +455,70 @@ app.get('/api/admin/invitations', adminMiddleware, async (req, res) => {
 
 // ==================== OG TAGS (link preview) ====================
 app.get('/v/:slug', async (req, res) => {
-  // If request has Accept: text/html (browser), serve OG-enriched HTML
   try {
     const r = await sql`
-      SELECT i.category, i.data, t.bg_style FROM invitations i
+      SELECT i.category, i.data, i.slug, t.bg_style, t.accent_color FROM invitations i
       LEFT JOIN templates t ON i.template_id = t.id WHERE i.slug = ${req.params.slug}`;
 
     if (r.length > 0) {
       const inv = r[0];
       const d = typeof inv.data === 'string' ? JSON.parse(inv.data) : inv.data;
-      let title = 'Taklifnoma', desc = 'Sizni taklif qilamiz!';
+      let title = 'Taklifnoma', desc = 'Sizni taklif qilamiz!', emoji = '📨';
 
       if (inv.category === 'wedding') {
-        title = `${d.groomName || ''} & ${d.brideName || ''} — To'y taklifnomasi`;
-        desc = d.mainText || `${d.groomName} va ${d.brideName} to'yiga taklif etamiz!`;
+        title = (d.groomName || '') + ' & ' + (d.brideName || '');
+        desc = d.mainText ? d.mainText.slice(0, 150) : (title + ' to\'yiga taklif etamiz!');
+        emoji = '💍';
       } else if (inv.category === 'birthday') {
-        title = `${d.birthdayPerson || ''} — Tug'ilgan kun`;
-        desc = d.birthdayText || 'Tug\'ilgan kunga taklif!';
+        title = (d.birthdayPerson || '') + ' - Tug\'ilgan kun';
+        desc = d.birthdayText ? d.birthdayText.slice(0, 150) : 'Tug\'ilgan kun bayramiga taklif!';
+        emoji = '🎂';
       } else if (inv.category === 'event') {
         title = d.eventName || 'Tadbir';
-        desc = d.eventDesc || 'Tadbirga taklif!';
+        desc = d.eventDesc ? d.eventDesc.slice(0, 150) : 'Tadbirga taklif!';
+        emoji = '🎤';
       } else if (inv.category === 'love') {
-        title = `${d.loveFrom || ''} ❤ ${d.loveTo || ''}`;
+        title = (d.loveFrom || '') + ' ❤ ' + (d.loveTo || '');
         desc = 'Dil izhori';
+        emoji = '❤️';
       }
 
-      const ogHtml = `<!DOCTYPE html>
-<html lang="uz"><head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>${title}</title>
-<meta name="description" content="${desc.slice(0, 160)}">
-<meta property="og:title" content="${title}">
-<meta property="og:description" content="${desc.slice(0, 160)}">
-<meta property="og:type" content="website">
-<meta property="og:url" content="${SITE_URL}/v/${req.params.slug}">
-<meta property="og:image" content="${SITE_URL}/og-image.png">
-<meta property="og:site_name" content="Taklifnomachi.online">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#7c3aed">
-<link rel="icon" href="/favicon.svg">
-<script>window.__INV_SLUG__="${req.params.slug}";</script>
-</head><body><div id="root"></div>
-<script type="module" src="/assets/index.js"></script>
-<script type="module" src="/src/main.jsx"></script>
-</body></html>`;
+      // Sanitize for HTML attributes
+      const safeTitle = title.replace(/"/g, '&quot;').replace(/</g, '&lt;');
+      const safeDesc = desc.replace(/"/g, '&quot;').replace(/</g, '&lt;');
+      const color = inv.accent_color || '#7c3aed';
+      const ogUrl = SITE_URL + '/v/' + req.params.slug;
+      const ogImg = SITE_URL + '/og-image.svg';
 
-      return res.send(ogHtml);
+      // Read dist/index.html and inject OG tags
+      const fs = await import('fs');
+      const indexPath = path.join(__dirname, 'dist', 'index.html');
+      let html = '';
+      try { html = fs.readFileSync(indexPath, 'utf8'); } catch { }
+
+      if (html) {
+        // Inject OG tags before </head>
+        const ogTags = `
+    <title>${safeTitle} | Taklifnomachi</title>
+    <meta name="description" content="${safeDesc}">
+    <meta property="og:title" content="${emoji} ${safeTitle}">
+    <meta property="og:description" content="${safeDesc}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="${ogUrl}">
+    <meta property="og:image" content="${ogImg}">
+    <meta property="og:site_name" content="Taklifnomachi.online">
+    <meta property="og:locale" content="uz_UZ">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${emoji} ${safeTitle}">
+    <meta name="twitter:description" content="${safeDesc}">
+    <meta name="twitter:image" content="${ogImg}">
+    <meta name="theme-color" content="${color}">`;
+
+        // Remove existing title and add OG
+        html = html.replace(/<title>[^<]*<\/title>/, '');
+        html = html.replace('</head>', ogTags + '\n</head>');
+        return res.send(html);
+      }
     }
   } catch (e) { logError('ogTags', e); }
 
