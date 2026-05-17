@@ -382,7 +382,7 @@ function AuthPage() {
 // ==================== FORM ====================
 function FormPage() {
   const { cat, tplId } = useParams();
-  const { t, navigate } = useApp();
+  const { t, lang, navigate } = useApp();
   const [f, sF] = useState({});
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
@@ -429,20 +429,34 @@ function FormPage() {
   );
 }
 
+// ==================== QR CODE GENERATOR ====================
+function QRCode({ text, size = 160 }) {
+  // Simple QR via external API
+  const url = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}&bgcolor=ffffff&color=7c3aed&margin=8`;
+  return <img src={url} alt="QR Code" style={{ width: size, height: size, borderRadius: 12, border: '1px solid var(--border)' }} />;
+}
+
 // ==================== SHARE ====================
 function SharePage() {
   const { uid } = useParams();
-  const { t } = useApp();
+  const { t, lang } = useApp();
   const [inv, setInv] = useState(null);
   const [copied, setCopied] = useState(false);
   const [codeCopied, setCC] = useState(false);
   const [slug, setSlug] = useState('');
   const [paidLink, setPL] = useState('');
+  const [showQR, setShowQR] = useState(false);
 
   useEffect(() => { api.getInvByUid(uid).then(d=>setInv(d.invitation)).catch(()=>{}); }, [uid]);
   if (!inv) return <div className="loading">{t.loading}</div>;
 
   const copy = (txt, fn) => { navigator.clipboard?.writeText(txt).then(()=>{fn(true);setTimeout(()=>fn(false),2000)}); };
+
+  const nativeShare = (link) => {
+    if (navigator.share) {
+      navigator.share({ title: lang==='uz'?'Taklifnoma':'Приглашение', text: lang==='uz'?'Sizni taklifnomaga taklif qilamiz!':'Приглашаем вас!', url: link }).catch(()=>{});
+    }
+  };
 
   if (inv.is_free && inv.link) {
     return (
@@ -455,6 +469,27 @@ function SharePage() {
         <div className="share-row">
           <button className="share-btn wa" onClick={()=>window.open(`https://wa.me/?text=${encodeURIComponent(inv.link)}`)}>💬 {t.shareWhatsapp}</button>
           <button className="share-btn tg" onClick={()=>window.open(`https://t.me/share/url?url=${encodeURIComponent(inv.link)}`)}>✈️ {t.shareTelegram}</button>
+        </div>
+        {navigator.share && (
+          <button onClick={()=>nativeShare(inv.link)} style={{ width:'100%', padding:14, borderRadius:12, border:'1.5px solid var(--border)', background:'var(--white)', fontFamily:'Inter,sans-serif', fontSize:14, fontWeight:600, cursor:'pointer', marginTop:8, color:'var(--text1)' }}>
+            📤 {lang==='uz'?'Boshqa ilovalar orqali ulashish':'Поделиться через другие приложения'}
+          </button>
+        )}
+        <div style={{marginTop:20, textAlign:'center'}}>
+          <button onClick={()=>setShowQR(!showQR)} style={{ background:'none', border:'none', color:'var(--purple)', fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'Inter,sans-serif' }}>
+            {showQR?'🔼 QR yashirish':'🔽 QR kod ko\'rsatish'}
+          </button>
+          {showQR && (
+            <div style={{marginTop:12, display:'flex', flexDirection:'column', alignItems:'center', gap:8}}>
+              <QRCode text={inv.link} />
+              <div style={{fontSize:11, color:'var(--text3)'}}>QR kodni skanerlang</div>
+            </div>
+          )}
+        </div>
+        <div style={{marginTop:16}}>
+          <button onClick={()=>window.open(inv.link,'_blank')} style={{ width:'100%', padding:12, borderRadius:10, border:'1px solid var(--border)', background:'var(--bg)', fontFamily:'Inter,sans-serif', fontSize:13, cursor:'pointer', color:'var(--text2)' }}>
+            👁 {lang==='uz'?'Taklifnomani ko\'rish':'Просмотреть приглашение'}
+          </button>
         </div>
       </div>
     );
@@ -480,7 +515,14 @@ function SharePage() {
         <button className="main-btn" disabled={slug.length<3} onClick={async()=>{
           try { const d=await api.setSlug(inv.id,slug); setPL(d.link); } catch(e){alert(e.message)}
         }}>{t.createLink}</button>
-        {paidLink&&<div style={{marginTop:12}}><div className="link-box">{paidLink}</div><button className="copy-btn" style={{marginTop:8}} onClick={()=>copy(paidLink,setCopied)}>{copied?`✅ ${t.copied}`:`📋 ${t.copyLink}`}</button></div>}
+        {paidLink&&(<div style={{marginTop:12}}>
+          <div className="link-box">{paidLink}</div>
+          <button className="copy-btn" style={{marginTop:8}} onClick={()=>copy(paidLink,setCopied)}>{copied?`✅ ${t.copied}`:`📋 ${t.copyLink}`}</button>
+          <div className="share-row" style={{marginTop:8}}>
+            <button className="share-btn wa" onClick={()=>window.open(`https://wa.me/?text=${encodeURIComponent(paidLink)}`)}>💬 WhatsApp</button>
+            <button className="share-btn tg" onClick={()=>window.open(`https://t.me/share/url?url=${encodeURIComponent(paidLink)}`)}>✈️ Telegram</button>
+          </div>
+        </div>)}
       </div>
     </div>
   );
