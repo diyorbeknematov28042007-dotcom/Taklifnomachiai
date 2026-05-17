@@ -40,168 +40,191 @@ h1{font-size:20px;margin-bottom:16px;text-align:center}
 <button class="btn" id="runBtn" onclick="runTests()">🚀 Testlarni ishga tushirish</button>
 
 <script>
-const BASE = window.location.origin;
-let pass=0,fail=0,warn=0;
-const tests = document.getElementById('tests');
+var BASE = window.location.origin;
+var pass=0, fail=0, warn=0;
 
 function addTest(name){
-  const div = document.createElement('div');
-  div.className = 'test pending';
-  div.innerHTML = `<div class="icon"></div><div class="info"><div class="name">${name}</div><div class="detail">Tekshirilmoqda...</div></div>`;
-  tests.appendChild(div);
+  var div = document.createElement("div");
+  div.className = "test pending";
+  div.innerHTML = '<div class="icon"></div><div class="info"><div class="name">'+name+'</div><div class="detail">Tekshirilmoqda...</div></div>';
+  document.getElementById("tests").appendChild(div);
   return div;
 }
 
 function setResult(div, status, detail){
-  div.className = 'test ' + status;
-  div.querySelector('.detail').textContent = detail;
-  if(status==='pass')pass++;
-  else if(status==='fail')fail++;
+  div.className = "test " + status;
+  div.querySelector(".detail").textContent = detail;
+  if(status==="pass") pass++;
+  else if(status==="fail") fail++;
   else warn++;
 }
 
+async function doFetch(url, opts){
+  var r = await fetch(url, opts || {});
+  var text = await r.text();
+  var json = null;
+  try { json = JSON.parse(text); } catch(e){}
+  return { status: r.status, headers: r.headers, text: text, json: json };
+}
+
 async function runTests(){
-  document.getElementById('runBtn').disabled=true;
-  tests.innerHTML='';
-  pass=fail=warn=0;
+  document.getElementById("runBtn").disabled = true;
+  document.getElementById("tests").innerHTML = "";
+  document.getElementById("summary").style.display = "none";
+  pass = 0; fail = 0; warn = 0;
 
   // 1. Health
-  const t1=addTest('Health endpoint');
-  try{
-    const r=await fetch(BASE+'/api/health');
-    const d=await r.json();
-    if(d.status==='ok'&&d.db==='connected'){
-      setResult(t1,'pass',`DB: ${d.dbLatency||'?'} | Uptime: ${d.uptime||'?'} | ENV: ${d.env||'?'}`);
-    }else{
-      setResult(t1,'fail','DB: '+(d.db||'unknown'));
+  var t1 = addTest("Health endpoint");
+  try {
+    var r = await doFetch(BASE + "/api/health");
+    if(r.json && r.json.status === "ok" && r.json.db === "connected"){
+      setResult(t1, "pass", "DB: " + (r.json.dbLatency||"?") + " | Uptime: " + (r.json.uptime||"?"));
+    } else {
+      setResult(t1, "fail", "DB: " + (r.json ? r.json.db : r.text.slice(0,60)));
     }
-  }catch(e){setResult(t1,'fail',e.message)}
+  } catch(e){ setResult(t1, "fail", e.message); }
 
   // 2. Security headers
-  const t2=addTest('Xavfsizlik headerlari');
-  try{
-    const r=await fetch(BASE+'/api/health');
-    const h1=r.headers.get('x-content-type-options');
-    const h2=r.headers.get('x-frame-options');
-    if(h1&&h2) setResult(t2,'pass',`XCTO: ${h1}, XFO: ${h2}`);
-    else if(h1||h2) setResult(t2,'warn','Ba\'zi headerlar yo\'q');
-    else setResult(t2,'warn','Security headerlar yo\'q — yangi server push qilinganmi?');
-  }catch(e){setResult(t2,'fail',e.message)}
+  var t2 = addTest("Xavfsizlik headerlari");
+  try {
+    var r = await fetch(BASE + "/api/health");
+    var h1 = r.headers.get("x-content-type-options");
+    var h2 = r.headers.get("x-frame-options");
+    if(h1 && h2) setResult(t2, "pass", "XCTO: " + h1 + ", XFO: " + h2);
+    else if(h1 || h2) setResult(t2, "warn", "Bir qism headerlar bor");
+    else setResult(t2, "warn", "Security headerlar yoq — yangi server push qiling");
+  } catch(e){ setResult(t2, "fail", e.message); }
 
   // 3. Templates
-  const t3=addTest('Templates API');
-  try{
-    const r=await fetch(BASE+'/api/templates');
-    const d=await r.json();
-    if(d.templates&&d.templates.length>0) setResult(t3,'pass',d.templates.length+' ta shablon topildi');
-    else if(d.templates) setResult(t3,'warn','Shablonlar bo\'sh — seed data kerak');
-    else setResult(t3,'fail','Noto\'g\'ri javob: '+JSON.stringify(d).slice(0,80));
-  }catch(e){setResult(t3,'fail',e.message)}
+  var t3 = addTest("Templates API");
+  try {
+    var r = await doFetch(BASE + "/api/templates");
+    if(r.json && r.json.templates && r.json.templates.length > 0){
+      setResult(t3, "pass", r.json.templates.length + " ta shablon topildi");
+    } else if(r.json && r.json.templates){
+      setResult(t3, "warn", "Shablonlar bosh — seed data kerak");
+    } else {
+      setResult(t3, "fail", "Javob: " + r.text.slice(0,80));
+    }
+  } catch(e){ setResult(t3, "fail", e.message); }
 
-  // 4. Auth — bo'sh login
-  const t4=addTest('Auth: bo\'sh login rad etish');
-  try{
-    const r=await fetch(BASE+'/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({login:'',password:'123456'})});
-    const d=await r.json();
-    if(r.status>=400&&d.error) setResult(t4,'pass','Rad etildi: '+d.error);
-    else setResult(t4,'fail','Bo\'sh login qabul qilindi!');
-  }catch(e){setResult(t4,'fail',e.message)}
+  // 4. Auth — bosh login
+  var t4 = addTest("Auth: bosh login rad etish");
+  try {
+    var r = await doFetch(BASE + "/api/auth/register", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({login: "", password: "123456"})
+    });
+    if(r.status >= 400 && r.json && r.json.error) setResult(t4, "pass", "Rad etildi: " + r.json.error);
+    else setResult(t4, "fail", "Bosh login qabul qilindi! Status: " + r.status);
+  } catch(e){ setResult(t4, "fail", e.message); }
 
   // 5. Auth — qisqa parol
-  const t5=addTest('Auth: qisqa parol rad etish');
-  try{
-    const r=await fetch(BASE+'/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({login:'testxyz99','password:'12'})});
-    const d=await r.json();
-    if(r.status>=400&&d.error) setResult(t5,'pass','Rad etildi: '+d.error);
-    else setResult(t5,'fail','Qisqa parol qabul qilindi!');
-  }catch(e){setResult(t5,'fail',e.message)}
+  var t5 = addTest("Auth: qisqa parol rad etish");
+  try {
+    var r = await doFetch(BASE + "/api/auth/register", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({login: "testxyz99", password: "12"})
+    });
+    if(r.status >= 400 && r.json && r.json.error) setResult(t5, "pass", "Rad etildi: " + r.json.error);
+    else setResult(t5, "fail", "Qisqa parol qabul qilindi! Status: " + r.status);
+  } catch(e){ setResult(t5, "fail", e.message); }
 
-  // 6. Auth — noto'g'ri login
-  const t6=addTest('Auth: noto\'g\'ri login/parol');
-  try{
-    const r=await fetch(BASE+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({login:'fake_user_xyz_999','password:'wrong'})});
-    const d=await r.json();
-    if(r.status===401&&d.error) setResult(t6,'pass','401 rad etildi');
-    else setResult(t6,'fail','Noto\'g\'ri status: '+r.status);
-  }catch(e){setResult(t6,'fail',e.message)}
+  // 6. Auth — notogri login
+  var t6 = addTest("Auth: notogri login/parol");
+  try {
+    var r = await doFetch(BASE + "/api/auth/login", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({login: "fake_user_xyz_999", password: "wrongpass"})
+    });
+    if(r.status === 401) setResult(t6, "pass", "401 rad etildi");
+    else setResult(t6, "fail", "Status: " + r.status + " (401 kutilgan)");
+  } catch(e){ setResult(t6, "fail", e.message); }
 
   // 7. Token himoyasi
-  const t7=addTest('Auth: tokensiz /me rad etish');
-  try{
-    const r=await fetch(BASE+'/api/auth/me');
-    if(r.status===401) setResult(t7,'pass','401 qaytarildi');
-    else setResult(t7,'fail','Status: '+r.status+' (401 kutilgan)');
-  }catch(e){setResult(t7,'fail',e.message)}
+  var t7 = addTest("Auth: tokensiz /me rad etish");
+  try {
+    var r = await fetch(BASE + "/api/auth/me");
+    if(r.status === 401) setResult(t7, "pass", "401 qaytarildi");
+    else setResult(t7, "fail", "Status: " + r.status + " (401 kutilgan)");
+  } catch(e){ setResult(t7, "fail", e.message); }
 
-  // 8. Admin himoyasi
-  const t8=addTest('Admin: kalitsiz rad etish');
-  try{
-    const r=await fetch(BASE+'/api/admin/stats');
-    if(r.status===403) setResult(t8,'pass','403 Forbidden');
-    else setResult(t8,'fail','Status: '+r.status+' (403 kutilgan)');
-  }catch(e){setResult(t8,'fail',e.message)}
+  // 8. Admin himoyasi — kalitsiz
+  var t8 = addTest("Admin: kalitsiz rad etish");
+  try {
+    var r = await fetch(BASE + "/api/admin/stats");
+    if(r.status === 403) setResult(t8, "pass", "403 Forbidden");
+    else setResult(t8, "fail", "Status: " + r.status + " (403 kutilgan)");
+  } catch(e){ setResult(t8, "fail", e.message); }
 
-  // 9. Admin noto'g'ri kalit
-  const t9=addTest('Admin: noto\'g\'ri kalit rad etish');
-  try{
-    const r=await fetch(BASE+'/api/admin/stats',{headers:{'x-admin-key':'wrong-key-123'}});
-    if(r.status===403) setResult(t9,'pass','403 Forbidden');
-    else setResult(t9,'fail','Status: '+r.status);
-  }catch(e){setResult(t9,'fail',e.message)}
+  // 9. Admin — notogri kalit
+  var t9 = addTest("Admin: notogri kalit rad etish");
+  try {
+    var r = await fetch(BASE + "/api/admin/stats", {headers: {"x-admin-key": "wrong-key-123"}});
+    if(r.status === 403) setResult(t9, "pass", "403 Forbidden");
+    else setResult(t9, "fail", "Status: " + r.status + " (403 kutilgan)");
+  } catch(e){ setResult(t9, "fail", e.message); }
 
-  // 10. 404 slug
-  const t10=addTest('Topilmagan slug xato qaytarish');
-  try{
-    const r=await fetch(BASE+'/api/invitations/by-slug/nonexistent_test_slug_xyz');
-    if(r.status===404) setResult(t10,'pass','404 qaytarildi');
-    else setResult(t10,'fail','Status: '+r.status);
-  }catch(e){setResult(t10,'fail',e.message)}
+  // 10. Topilmagan slug
+  var t10 = addTest("Topilmagan slug 404 qaytarish");
+  try {
+    var r = await fetch(BASE + "/api/invitations/by-slug/nonexistent_test_slug_xyz_000");
+    if(r.status === 404) setResult(t10, "pass", "404 qaytarildi");
+    else setResult(t10, "fail", "Status: " + r.status + " (404 kutilgan)");
+  } catch(e){ setResult(t10, "fail", e.message); }
 
   // 11. Topilmagan template
-  const t11=addTest('Topilmagan template 404');
-  try{
-    const r=await fetch(BASE+'/api/templates/zzz_nonexistent');
-    if(r.status===404) setResult(t11,'pass','404 qaytarildi');
-    else setResult(t11,'fail','Status: '+r.status);
-  }catch(e){setResult(t11,'fail',e.message)}
+  var t11 = addTest("Topilmagan template 404");
+  try {
+    var r = await fetch(BASE + "/api/templates/zzz_none");
+    if(r.status === 404) setResult(t11, "pass", "404 qaytarildi");
+    else setResult(t11, "fail", "Status: " + r.status + " (404 kutilgan)");
+  } catch(e){ setResult(t11, "fail", e.message); }
 
   // 12. RSVP validatsiya
-  const t12=addTest('RSVP: bo\'sh invitationId rad etish');
-  try{
-    const r=await fetch(BASE+'/api/responses',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'test'})});
-    const d=await r.json();
-    if(r.status>=400) setResult(t12,'pass','Rad etildi');
-    else setResult(t12,'fail','Qabul qilindi — validatsiya yo\'q');
-  }catch(e){setResult(t12,'fail',e.message)}
+  var t12 = addTest("RSVP: bosh data rad etish");
+  try {
+    var r = await doFetch(BASE + "/api/responses", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({message: "test"})
+    });
+    if(r.status >= 400) setResult(t12, "pass", "Rad etildi (status " + r.status + ")");
+    else setResult(t12, "fail", "Qabul qilindi — validatsiya yoq");
+  } catch(e){ setResult(t12, "fail", e.message); }
 
   // 13. SPA fallback
-  const t13=addTest('SPA fallback (/profile)');
-  try{
-    const r=await fetch(BASE+'/profile');
-    if(r.status===200){
-      const t=await r.text();
-      if(t.includes('root')) setResult(t13,'pass','HTML qaytarildi');
-      else setResult(t13,'warn','200 lekin content noto\'g\'ri');
-    }else setResult(t13,'fail','Status: '+r.status);
-  }catch(e){setResult(t13,'fail',e.message)}
+  var t13 = addTest("SPA fallback (/profile)");
+  try {
+    var r = await doFetch(BASE + "/profile");
+    if(r.status === 200 && r.text.indexOf("root") > -1) setResult(t13, "pass", "HTML qaytarildi");
+    else setResult(t13, "fail", "Status: " + r.status);
+  } catch(e){ setResult(t13, "fail", e.message); }
 
-  // 14. JSON limit
-  const t14=addTest('JSON body limit (1MB)');
-  try{
-    const big=JSON.stringify({login:'x',password:'y'.repeat(1500000)});
-    const r=await fetch(BASE+'/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:big});
-    if(r.status===413||r.status===400) setResult(t14,'pass','Katta body rad etildi ('+r.status+')');
-    else setResult(t14,'warn','Status: '+r.status+' (413 yoki 400 kutilgan)');
-  }catch(e){setResult(t14,'warn','Network error (ehtimol to\'g\'ri bloklangan)')}
+  // 14. JSON body limit
+  var t14 = addTest("JSON body limit (1MB)");
+  try {
+    var bigStr = "x".repeat(1500000);
+    var r = await fetch(BASE + "/api/auth/register", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({login: bigStr, password: bigStr})
+    });
+    if(r.status === 413 || r.status === 400) setResult(t14, "pass", "Katta body rad etildi (" + r.status + ")");
+    else setResult(t14, "warn", "Status: " + r.status);
+  } catch(e){ setResult(t14, "warn", "Network error (ehtimol togri bloklangan)"); }
 
-  // Show summary
-  document.getElementById('summary').style.display='block';
-  document.getElementById('passC').textContent=pass;
-  document.getElementById('failC').textContent=fail;
-  document.getElementById('warnC').textContent=warn;
-  document.getElementById('verdict').textContent = fail===0 ? '🎉 Bosqich 1 TAYYOR!' : `🔧 ${fail} ta xato tuzatish kerak`;
-  document.getElementById('runBtn').disabled=false;
-  document.getElementById('runBtn').textContent='🔄 Qayta tekshirish';
+  // NATIJA
+  document.getElementById("summary").style.display = "block";
+  document.getElementById("passC").textContent = pass;
+  document.getElementById("failC").textContent = fail;
+  document.getElementById("warnC").textContent = warn;
+  document.getElementById("verdict").textContent = fail === 0 ? "🎉 Bosqich 1 TAYYOR!" : "🔧 " + fail + " ta xato tuzatish kerak";
+  document.getElementById("runBtn").disabled = false;
+  document.getElementById("runBtn").textContent = "🔄 Qayta tekshirish";
 }
 </script>
 </body>
