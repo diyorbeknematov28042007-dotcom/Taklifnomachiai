@@ -2,6 +2,7 @@ import { useState, useEffect, createContext, useContext } from 'react';
 import { Routes, Route, Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { T, catNames } from './lib/i18n';
 import * as api from './lib/api';
+import WeddingTemplate1 from './templates/WeddingTemplate1';
 
 const AppContext = createContext();
 function useApp() { return useContext(AppContext); }
@@ -257,7 +258,16 @@ function FormPage() {
   const cn = catNames(t);
 
   const fields = {
-    wedding: [{k:'groomName',l:t.groomName},{k:'brideName',l:t.brideName},{k:'mainText',l:t.mainText,ta:true},{k:'date',l:t.date,type:'date'},{k:'time',l:t.time,type:'time'},{k:'address',l:t.address},{k:'cardNumber',l:t.cardNumber,opt:true}],
+    wedding: [
+      {k:'groomName',l:t.groomName},{k:'brideName',l:t.brideName},
+      {k:'mainText',l:t.mainText,ta:true},
+      {k:'date',l:t.date,type:'date'},{k:'time',l:t.time,type:'time'},
+      {k:'venueName',l:lang==='uz'?'To\'yxona nomi':'Название ресторана',ph:lang==='uz'?'Masalan: Visol to\'yxonasi':'Например: Ресторан Висол'},
+      {k:'address',l:t.address,ph:lang==='uz'?'Toshkent sh., Chilonzor t., Bunyodkor ko\'chasi 1-uy':'Ташкент, Чиланзар...'},
+      {k:'googleMapsUrl',l:'Google Maps link',opt:true,ph:'https://maps.google.com/...'},
+      {k:'yandexMapsUrl',l:'Yandex Maps link',opt:true,ph:'https://yandex.uz/maps/...'},
+      {k:'cardNumber',l:t.cardNumber,opt:true,ph:'8600 1234 5678 9012'},
+    ],
     birthday: [{k:'birthdayPerson',l:t.birthdayPerson},{k:'birthdayDate',l:t.birthdayDate,type:'datetime-local'},{k:'birthdayText',l:t.birthdayText,ta:true},{k:'birthdayAddress',l:t.birthdayAddress},{k:'birthdayExtra',l:t.birthdayExtra,opt:true}],
     event: [{k:'eventName',l:t.eventName},{k:'eventDesc',l:t.eventDesc,ta:true},{k:'time',l:t.time,type:'datetime-local'},{k:'address',l:t.address},{k:'eventExtra',l:t.eventExtra,opt:true}],
     love: [{k:'loveFrom',l:t.loveFrom},{k:'loveTo',l:t.loveTo},{k:'loveText',l:t.loveText,ta:true}],
@@ -276,8 +286,8 @@ function FormPage() {
         {(fields[cat]||[]).map(fld => (
           <div className="fg" key={fld.k}>
             <label>{fld.l} {fld.opt&&<span style={{opacity:.4,fontWeight:400}}>({t.optional})</span>}</label>
-            {fld.ta ? <textarea className="fi" value={f[fld.k]||''} onChange={e=>set(fld.k,e.target.value)} placeholder={fld.l}/>
-              : <input className="fi" type={fld.type||'text'} value={f[fld.k]||''} onChange={e=>set(fld.k,e.target.value)} placeholder={fld.l}/>}
+            {fld.ta ? <textarea className="fi" value={f[fld.k]||''} onChange={e=>set(fld.k,e.target.value)} placeholder={fld.ph||fld.l}/>
+              : <input className="fi" type={fld.type||'text'} value={f[fld.k]||''} onChange={e=>set(fld.k,e.target.value)} placeholder={fld.ph||fld.l}/>}
           </div>
         ))}
         {err&&<div className="form-err">⚠️ {err}</div>}
@@ -350,10 +360,6 @@ function ViewInvPage() {
   const { t, lang } = useApp();
   const [inv, setInv] = useState(null);
   const [err, setErr] = useState(false);
-  const [rsvp, setRsvp] = useState('');
-  const [guests, setGuests] = useState(1);
-  const [msg, setMsg] = useState('');
-  const [name, setName] = useState('');
   const [sent, setSent] = useState(false);
 
   useEffect(() => {
@@ -372,27 +378,31 @@ function ViewInvPage() {
   if (!inv) return <div className="loading">{t.loading}</div>;
 
   const d = typeof inv.data === 'string' ? JSON.parse(inv.data) : inv.data;
-  const cn = catNames(t);
-  const showRsvp = inv.category !== 'love';
 
-  const send = async () => {
-    try { await api.sendResponse(inv.id, rsvp||null, guests, msg, name); setSent(true); }
+  const [rsvp, setRsvp] = useState('');
+  const [guests, setGuests] = useState(1);
+  const [msg, setMsg] = useState('');
+  const [name, setName] = useState('');
+
+  const handleRespond = async ({ rsvp, guestCount, message, senderName }) => {
+    try { await api.sendResponse(inv.id, rsvp, guestCount, message, senderName); setSent(true); }
     catch (e) { alert(e.message); }
   };
 
+  // To'y kategoriyasi — chiroyli shablon
+  if (inv.category === 'wedding') {
+    return <WeddingTemplate1 data={d} onRespond={handleRespond} sent={sent} lang={lang} />;
+  }
+
+  // Boshqa kategoriyalar — oddiy ko'rinish
+  const cn = catNames(t);
+  const showRsvp = inv.category !== 'love';
   const iStyle = { width:'100%', padding:10, borderRadius:8, background:'rgba(255,255,255,0.1)', border:'1px solid rgba(255,255,255,0.2)', color:'inherit', fontFamily:'Inter,sans-serif', fontSize:13, marginBottom:10, outline:'none', boxSizing:'border-box' };
 
   return (
     <div style={{ padding:'0 20px 30px' }}>
       <div className="inv-full fu" style={{ background:inv.bg_style || 'linear-gradient(135deg,#667eea,#764ba2)', color:inv.text_color || '#fff' }}>
         <div className="inv-cat-label">{cn[inv.category]}</div>
-
-        {inv.category==='wedding'&&(<>
-          <div className="inv-names">{d.groomName}</div><div className="inv-amp">&</div><div className="inv-names">{d.brideName}</div>
-          <div className="inv-line" style={{background:inv.text_color||'#fff'}}/><div className="inv-text">{d.mainText}</div>
-          <div className="inv-detail">📅 {d.date}</div><div className="inv-detail">🕐 {d.time}</div><div className="inv-detail">📍 {d.address}</div>
-          {d.cardNumber&&<div className="inv-card-num">💳 {d.cardNumber}</div>}
-        </>)}
         {inv.category==='birthday'&&(<>
           <div className="inv-names">{d.birthdayPerson}</div><div className="inv-line" style={{background:inv.text_color||'#fff'}}/>
           <div className="inv-text">{d.birthdayText}</div><div className="inv-detail">📅 {d.birthdayDate}</div><div className="inv-detail">📍 {d.birthdayAddress}</div>
@@ -405,7 +415,6 @@ function ViewInvPage() {
           <div style={{fontSize:14,opacity:.6}}>{d.loveFrom}</div><div style={{fontSize:48,margin:'12px 0'}}>❤️</div>
           <div style={{fontSize:14,opacity:.6}}>{d.loveTo}</div><div className="inv-line" style={{background:inv.text_color||'#fff'}}/><div className="inv-text">{d.loveText}</div>
         </>)}
-
         <div style={{ marginTop:28, paddingTop:24, borderTop:'1px solid rgba(255,255,255,0.15)', width:'100%' }}>
           <div style={{ fontSize:15, fontWeight:700, marginBottom:16, textAlign:'center' }}>{t.sendResponse}</div>
           {sent ? <div style={{ textAlign:'center', padding:20, opacity:.8 }}>✅ {t.responseSent}</div> : (<>
@@ -422,7 +431,7 @@ function ViewInvPage() {
               </div>
             </>)}
             <textarea placeholder={t.responsePlaceholder} value={msg} onChange={e=>setMsg(e.target.value)} style={{ ...iStyle, minHeight:60, resize:'none', marginBottom:12 }}/>
-            <button onClick={send} style={{ width:'100%', padding:12, border:'none', borderRadius:10, background:'rgba(255,255,255,0.2)', fontFamily:'Inter,sans-serif', fontSize:14, fontWeight:600, cursor:'pointer', color:'inherit' }}>✈️ {t.send}</button>
+            <button onClick={()=>handleRespond({rsvp:rsvp||null,guestCount:guests,message:msg,senderName:name})} style={{ width:'100%', padding:12, border:'none', borderRadius:10, background:'rgba(255,255,255,0.2)', fontFamily:'Inter,sans-serif', fontSize:14, fontWeight:600, cursor:'pointer', color:'inherit' }}>✈️ {t.send}</button>
           </>)}
         </div>
       </div>
