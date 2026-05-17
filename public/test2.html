@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bosqich 2 — Tekshirish</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,system-ui,sans-serif;background:#f8f9fa;padding:16px;max-width:480px;margin:0 auto}
+h1{font-size:20px;margin-bottom:16px;text-align:center}
+.test{background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:8px;border:1px solid #e5e7eb;display:flex;align-items:center;gap:10px}
+.icon{font-size:18px;width:28px;text-align:center;flex-shrink:0}
+.info{flex:1}
+.name{font-size:14px;font-weight:600;color:#1a1a1a}
+.detail{font-size:12px;color:#666;margin-top:2px}
+.pending .icon::after{content:'⏳'}
+.pass .icon::after{content:'✅'}
+.fail .icon::after{content:'❌'}
+.warn .icon::after{content:'⚠️'}
+.summary{background:#fff;border-radius:12px;padding:20px;margin-top:16px;text-align:center;border:1px solid #e5e7eb}
+.summary h2{font-size:18px;margin-bottom:12px}
+.counts{display:flex;justify-content:center;gap:20px;font-size:14px}
+.counts span{font-weight:700}
+.btn{display:block;width:100%;padding:14px;background:#7c3aed;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;margin-top:16px;font-family:inherit}
+.btn:disabled{opacity:.5}
+</style>
+</head>
+<body>
+<h1>🧪 Bosqich 2 — Bosh sahifa va UI</h1>
+<div id="tests"></div>
+<div class="summary" id="summary" style="display:none">
+<h2 id="verdict"></h2>
+<div class="counts">
+<div>✅ <span id="passC">0</span></div>
+<div>❌ <span id="failC">0</span></div>
+<div>⚠️ <span id="warnC">0</span></div>
+</div>
+</div>
+<button class="btn" id="runBtn" onclick="runTests()">🚀 Testlarni ishga tushirish</button>
+
+<script>
+var BASE = window.location.origin;
+var pass=0, fail=0, warn=0;
+
+function addTest(n){ var d=document.createElement("div"); d.className="test pending"; d.innerHTML='<div class="icon"></div><div class="info"><div class="name">'+n+'</div><div class="detail">Tekshirilmoqda...</div></div>'; document.getElementById("tests").appendChild(d); return d; }
+function setResult(d,s,t){ d.className="test "+s; d.querySelector(".detail").textContent=t; if(s==="pass")pass++; else if(s==="fail")fail++; else warn++; }
+
+async function runTests(){
+  document.getElementById("runBtn").disabled=true;
+  document.getElementById("tests").innerHTML="";
+  document.getElementById("summary").style.display="none";
+  pass=0;fail=0;warn=0;
+
+  // 1. PWA manifest
+  var t1=addTest("PWA manifest.json");
+  try{
+    var r=await fetch(BASE+"/manifest.json");
+    if(r.ok){var d=await r.json(); setResult(t1,"pass","name: "+d.name);}
+    else setResult(t1,"fail","Status: "+r.status);
+  }catch(e){setResult(t1,"fail",e.message)}
+
+  // 2. Favicon
+  var t2=addTest("Favicon mavjudligi");
+  try{
+    var r=await fetch(BASE+"/favicon.svg");
+    if(r.ok) setResult(t2,"pass","favicon.svg topildi");
+    else setResult(t2,"fail","favicon.svg topilmadi");
+  }catch(e){setResult(t2,"fail",e.message)}
+
+  // 3. Bosh sahifa yuklanishi
+  var t3=addTest("Bosh sahifa yuklanishi");
+  try{
+    var start=Date.now();
+    var r=await fetch(BASE+"/");
+    var ms=Date.now()-start;
+    var txt=await r.text();
+    if(r.ok && txt.indexOf("root")>-1) setResult(t3,"pass","Yuklandi ("+ms+"ms)");
+    else setResult(t3,"fail","Status: "+r.status);
+  }catch(e){setResult(t3,"fail",e.message)}
+
+  // 4. SEO meta taglar
+  var t4=addTest("SEO meta taglar (OG)");
+  try{
+    var r=await fetch(BASE+"/");
+    var txt=await r.text();
+    var hasOg = txt.indexOf('og:title')>-1 && txt.indexOf('og:description')>-1;
+    var hasDesc = txt.indexOf('meta name="description"')>-1;
+    if(hasOg && hasDesc) setResult(t4,"pass","OG title, description bor");
+    else if(hasOg || hasDesc) setResult(t4,"warn","Bir qism meta taglar bor");
+    else setResult(t4,"fail","OG taglar topilmadi");
+  }catch(e){setResult(t4,"fail",e.message)}
+
+  // 5. PWA link in HTML
+  var t5=addTest("PWA manifest HTML da ulangan");
+  try{
+    var r=await fetch(BASE+"/");
+    var txt=await r.text();
+    if(txt.indexOf('manifest.json')>-1) setResult(t5,"pass","manifest.json ulangan");
+    else setResult(t5,"warn","manifest.json HTML da topilmadi");
+  }catch(e){setResult(t5,"fail",e.message)}
+
+  // 6. Templates yuklash tezligi
+  var t6=addTest("Templates API tezligi");
+  try{
+    var start=Date.now();
+    var r=await fetch(BASE+"/api/templates");
+    var ms=Date.now()-start;
+    var d=await r.json();
+    if(ms<2000) setResult(t6,"pass",d.templates.length+" shablon, "+ms+"ms");
+    else setResult(t6,"warn","Sekin: "+ms+"ms");
+  }catch(e){setResult(t6,"fail",e.message)}
+
+  // 7. Footer mavjudligi (DOM test)
+  var t7=addTest("Footer komponenti");
+  try{
+    var iframe=document.createElement("iframe");
+    iframe.style.display="none";
+    iframe.src=BASE+"/";
+    document.body.appendChild(iframe);
+    await new Promise(function(res){iframe.onload=res; setTimeout(res,5000)});
+    var doc=iframe.contentDocument;
+    if(doc){
+      var footer=doc.querySelector(".footer");
+      if(footer) setResult(t7,"pass","Footer topildi");
+      else setResult(t7,"warn","Footer DOM da topilmadi (React yuklanmagan bo'lishi mumkin)");
+    } else setResult(t7,"warn","iframe ga kirish imkoni yoq");
+    document.body.removeChild(iframe);
+  }catch(e){setResult(t7,"warn","iframe test: "+e.message)}
+
+  // 8. Statik fayllar cache headerlari
+  var t8=addTest("Static files cache headerlari");
+  try{
+    var r=await fetch(BASE+"/favicon.svg");
+    var cc=r.headers.get("cache-control");
+    if(cc && cc.indexOf("max-age")>-1) setResult(t8,"pass","Cache-Control: "+cc);
+    else setResult(t8,"warn","Cache-Control yoq yoki max-age yoq");
+  }catch(e){setResult(t8,"fail",e.message)}
+
+  // 9. /templates/:cat sahifasi
+  var t9=addTest("Kategoriya sahifasi (/templates/wedding)");
+  try{
+    var r=await fetch(BASE+"/templates/wedding");
+    if(r.ok) setResult(t9,"pass","200 OK");
+    else setResult(t9,"fail","Status: "+r.status);
+  }catch(e){setResult(t9,"fail",e.message)}
+
+  // 10. /profile sahifasi (SPA)
+  var t10=addTest("Profil sahifasi (/profile)");
+  try{
+    var r=await fetch(BASE+"/profile");
+    if(r.ok) setResult(t10,"pass","200 OK (SPA fallback)");
+    else setResult(t10,"fail","Status: "+r.status);
+  }catch(e){setResult(t10,"fail",e.message)}
+
+  // NATIJA
+  document.getElementById("summary").style.display="block";
+  document.getElementById("passC").textContent=pass;
+  document.getElementById("failC").textContent=fail;
+  document.getElementById("warnC").textContent=warn;
+  document.getElementById("verdict").textContent = fail===0 ? "🎉 Bosqich 2 TAYYOR!" : "🔧 "+fail+" ta xato tuzatish kerak";
+  document.getElementById("runBtn").disabled=false;
+  document.getElementById("runBtn").textContent="🔄 Qayta tekshirish";
+}
+</script>
+</body>
+</html>
