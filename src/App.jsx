@@ -39,11 +39,124 @@ export default function App() {
           <Route path="/v/:slug" element={<ViewInvPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/profile/inv/:id" element={<ProfileInvPage />} />
+          <Route path="/stats" element={<StatsPage />} />
+          <Route path="/faq" element={<FaqPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <BottomNav />
       </div>
     </AppContext.Provider>
+  );
+}
+
+// ==================== BOTTOM NAVIGATION ====================
+function BottomNav() {
+  const { lang, navigate } = useApp();
+  const path = window.location.pathname;
+  // /v/ sahifalarida ko'rsatmaslik
+  if (path.startsWith('/v/')) return null;
+
+  const items = [
+    { key:'/', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>, label: lang==='uz'?'Asosiy':'Главная' },
+    { key:'/profile', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>, label: lang==='uz'?'Profil':'Профиль' },
+    { key:'/stats', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="7" width="4" height="14" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg>, label: lang==='uz'?'Statistika':'Статистика' },
+    { key:'/faq', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M9 9a3 3 0 015.12 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".5" fill="currentColor"/></svg>, label: lang==='uz'?'Savollar':'Вопросы' },
+  ];
+
+  return (
+    <div className="bottom-nav">
+      {items.map(it => (
+        <button key={it.key} className={`nav-item ${path===it.key?'active':''}`} onClick={() => navigate(it.key)}>
+          {it.icon}
+          <span>{it.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ==================== STATS PAGE ====================
+function StatsPage() {
+  const { lang } = useApp();
+  const [stats, setStats] = useState(null);
+  useEffect(() => {
+    fetch('/api/templates').then(r=>r.json()).then(d => {
+      const tplCount = d.templates?.length || 0;
+      fetch('/api/health').then(r=>r.json()).then(h => {
+        setStats({ templates: tplCount, uptime: h.uptime || '?' });
+      });
+    }).catch(() => {});
+  }, []);
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 20 }}>📊 {lang==='uz'?'Statistika':'Статистика'}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        {[
+          { i: '🎨', v: stats?.templates || '...', l: lang==='uz'?'Shablonlar':'Шаблоны' },
+          { i: '🌐', v: stats?.uptime || '...', l: lang==='uz'?'Server uptime':'Аптайм' },
+        ].map((s,i) => (
+          <div key={i} style={{ background:'var(--white)', borderRadius:14, padding:20, textAlign:'center', border:'1px solid var(--border)' }}>
+            <div style={{ fontSize:28, marginBottom:6 }}>{s.i}</div>
+            <div style={{ fontSize:24, fontWeight:800, color:'var(--purple)' }}>{s.v}</div>
+            <div style={{ fontSize:11, color:'var(--text3)', marginTop:4 }}>{s.l}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ marginTop:20, padding:16, background:'var(--white)', borderRadius:14, border:'1px solid var(--border)' }}>
+        <div style={{ fontSize:14, fontWeight:600, marginBottom:8 }}>ℹ️ {lang==='uz'?'Platforma haqida':'О платформе'}</div>
+        <div style={{ fontSize:13, color:'var(--text2)', lineHeight:1.6 }}>
+          {lang==='uz'
+            ? "Taklifnomachi.online — O'zbekistonda birinchi raqamli taklifnomalar platformasi. To'y, tug'ilgan kun, tadbir va dil izhorlari uchun zamonaviy taklifnomalar yarating."
+            : 'Taklifnomachi.online — первая платформа цифровых приглашений в Узбекистане.'}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ==================== FAQ PAGE ====================
+function FaqPage() {
+  const { lang } = useApp();
+  const [openIdx, setOpenIdx] = useState(null);
+
+  const faqs = lang==='uz' ? [
+    { q: "Taklifnoma qanday tayyorlanadi?", a: "1. Shablon tanlaysiz\n2. Ma'lumotlarni kiritasiz (ism, sana, manzil)\n3. Link olasiz va do'stlaringizga yuborasiz\n4. Mehmonlar javob yuboradi — siz profildan ko'rasiz" },
+    { q: "Qanday to'lov qilaman?", a: "Premium shablon tanlaganda 6 raqamli kod beriladi. Shu kodni @Paycheck_uzbot ga yuboring, ko'rsatilgan kartaga to'lov qiling va screenshot yuboring. Admin tasdiqlaydi — link tayyor!" },
+    { q: "Agar to'lovim tasdiqlanmasa kimga bog'lanay?", a: "Admin bilan bog'laning: @ndd_admin\nYoki qo'llab-quvvatlash botimiz orqali: @Taklifnomachi_online_bot" },
+    { q: "Maxsus taklifnoma buyurtmasi nima?", a: "Bu shaxsiy talablaringiz asosida alohida domen va profillik sayt orqali yaratilgan maxsus taklifnoma. Narxi 159,000 so'mdan boshlanadi. Buyurtma uchun @ndd_admin ga murojaat qiling." },
+  ] : [
+    { q: "Как создать приглашение?", a: "1. Выберите шаблон\n2. Заполните данные\n3. Получите ссылку\n4. Отправьте гостям" },
+    { q: "Как оплатить?", a: "При выборе премиум шаблона вы получите 6-значный код. Отправьте его боту @Paycheck_uzbot, оплатите и отправьте скриншот." },
+    { q: "Если оплата не подтверждена?", a: "Свяжитесь с админом: @ndd_admin\nИли через бот поддержки: @Taklifnomachi_online_bot" },
+    { q: "Что такое индивидуальное приглашение?", a: "Персональный сайт-приглашение на отдельном домене. От 159,000 сум. Обратитесь к @ndd_admin." },
+  ];
+
+  return (
+    <div style={{ padding: '20px 0' }}>
+      <div style={{ fontSize: 20, fontWeight: 700, padding: '0 20px', marginBottom: 16 }}>❓ {lang==='uz'?'Ko\'p so\'raladigan savollar':'Часто задаваемые вопросы'}</div>
+      {faqs.map((f, i) => (
+        <div className="faq-item" key={i}>
+          <button className={`faq-q ${openIdx===i?'open':''}`} onClick={() => setOpenIdx(openIdx===i?null:i)}>
+            <span>{f.q}</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+          </button>
+          {openIdx===i && <div className="faq-a" style={{whiteSpace:'pre-line'}}>{f.a}</div>}
+        </div>
+      ))}
+      <div style={{ padding:'20px', marginTop:16 }}>
+        <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>📞 {lang==='uz'?'Qo\'shimcha yordam':'Дополнительная помощь'}</div>
+        <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+          <a href="https://t.me/ndd_admin" target="_blank" rel="noopener" style={{ display:'flex', alignItems:'center', gap:10, padding:12, background:'var(--white)', borderRadius:12, border:'1px solid var(--border)', textDecoration:'none', color:'var(--text)', fontSize:14, fontWeight:500 }}>
+            👤 {lang==='uz'?'Admin bilan bog\'lanish':'Связаться с админом'}
+          </a>
+          <a href="https://t.me/Taklifnomachi_online_bot" target="_blank" rel="noopener" style={{ display:'flex', alignItems:'center', gap:10, padding:12, background:'var(--white)', borderRadius:12, border:'1px solid var(--border)', textDecoration:'none', color:'var(--text)', fontSize:14, fontWeight:500 }}>
+            🤖 {lang==='uz'?'Qo\'llab-quvvatlash boti':'Бот поддержки'}
+          </a>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -98,8 +211,8 @@ function Footer() {
       <div className="footer-brand">{t.brand}<span>{t.brandDot}</span></div>
       <div className="footer-desc">{lang === 'uz' ? "To'y, tug'ilgan kun, tadbir va dil izhorlari uchun raqamli taklifnomalar" : 'Цифровые приглашения на свадьбу, день рождения и мероприятия'}</div>
       <div className="footer-social">
-        <a href="https://t.me/taklifnomachi" target="_blank" rel="noopener">✈️</a>
-        <a href="https://instagram.com/taklifnomachi" target="_blank" rel="noopener">📸</a>
+        <a href="https://t.me/taklifnomachi_online" target="_blank" rel="noopener">✈️</a>
+        <a href="https://www.instagram.com/taklifnomachi.online" target="_blank" rel="noopener">📸</a>
       </div>
       <div className="footer-copy">© {new Date().getFullYear()} Taklifnomachi.online</div>
     </div>
@@ -108,99 +221,127 @@ function Footer() {
 
 // ==================== HOME ====================
 function Home() {
-  const { t, lang, navigate } = useApp();
+  const { t, lang, user, navigate } = useApp();
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [dropOpen, setDropOpen] = useState(false);
   useEffect(() => {
     api.getTemplates().then(d => { setTemplates(d.templates); setLoading(false); }).catch(() => setLoading(false));
   }, []);
 
   const cats = [
-    { key:'wedding', icon:'💍', label:t.catWedding, sub:t.catWeddingSub },
-    { key:'birthday', icon:'🎂', label:t.catBirthday, sub:t.catBirthdaySub },
-    { key:'event', icon:'🔎', label:t.catEvent, sub:t.catEventSub },
-    { key:'love', icon:'❤️', label:t.catLove, sub:t.catLoveSub },
+    { key:'wedding', icon:'💍', label:lang==='uz'?'To\'y taklifnomasi':'Свадебное приглашение' },
+    { key:'birthday', icon:'🎂', label:lang==='uz'?'Tug\'ilgan kun taklifnomasi':'День рождения' },
+    { key:'event', icon:'🎉', label:lang==='uz'?'Tadbir taklifnomasi':'Мероприятие' },
+    { key:'love', icon:'❤️', label:lang==='uz'?'Sevgi xati':'Любовное письмо' },
   ];
 
-  const steps = lang === 'uz' ? [
-    { n:'1', t:'Shablon tanlang', d:"O'zingizga yoqqan dizaynni tanlang" },
-    { n:'2', t:"Ma'lumot kiriting", d:"Ism, sana, manzil va boshqa tafsilotlar" },
-    { n:'3', t:'Link oling', d:"Tayyor linkni do'stlaringizga yuboring" },
-    { n:'4', t:'Javoblarni kuzating', d:"Kim keladi, kim kelmaydi — barchasini ko'ring" },
-  ] : [
-    { n:'1', t:'Выберите шаблон', d:'Найдите дизайн по душе' },
-    { n:'2', t:'Заполните данные', d:'Имена, дата, место и детали' },
-    { n:'3', t:'Получите ссылку', d:'Отправьте друзьям и родным' },
-    { n:'4', t:'Следите за ответами', d:'Кто придёт, кто нет — всё видно' },
-  ];
+  const cn = catNames(t);
+
+  const getSampleDisplay = (tp) => {
+    const s = typeof tp.sample_data === 'string' ? JSON.parse(tp.sample_data || '{}') : (tp.sample_data || {});
+    if (tp.category === 'wedding') return { l1: s.name1 || 'Ali', l2: '&', l3: s.name2 || 'Zarina', l4: s.date || '' };
+    if (tp.category === 'birthday') return { l1: s.person || 'Ism', l4: s.date || '' };
+    if (tp.category === 'event') return { l1: s.name || 'Tadbir', l4: s.date || '' };
+    return { l1: s.from || '❤️', l3: s.to || '' };
+  };
 
   return (
     <div>
-      <div className="hero fu">
-        <div className="hero-deco" />
-        <div className="hero-title">{t.heroTitle}</div>
-        <div className="hero-sub">{t.heroSub}</div>
-      </div>
-      <div className="search-bar fu fu1" onClick={() => navigate('/templates/wedding')}>
-        <span className="search-icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.5"/><path d="M12.5 12.5L16 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg></span>
-        <span className="search-text">{t.searchPlaceholder}</span>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-      </div>
-      <div className="cats fu fu2">
-        {cats.map(c => (
-          <Link key={c.key} to={`/templates/${c.key}`} className="cat-card">
-            <div className={`cat-icon-wrap ${c.key}`}>{c.icon}</div>
-            <div className="cat-name">{c.label}</div>
-            <div className="cat-sub">{c.sub}</div>
-          </Link>
-        ))}
-      </div>
-      <div className="about fu fu3">
-        <div className="about-content"><h3>{t.aboutTitle}</h3><p>{t.aboutText}</p></div>
-        <div className="about-img">📨</div>
-      </div>
-      <div className="feats fu fu4">
-        {[{i:'⚡',t:t.feat1,s:t.feat1sub},{i:'📱',t:t.feat2,s:t.feat2sub},{i:'🔗',t:t.feat3,s:t.feat3sub},{i:'💬',t:t.feat4,s:t.feat4sub}].map((f,i) => (
-          <div className="feat" key={i}><div className="feat-icon">{f.i}</div><div className="feat-text">{f.t}</div><div className="feat-sub">{f.s}</div></div>
-        ))}
-      </div>
-
-      {/* Qanday ishlaydi */}
-      <div className="sec-hdr fu fu5">
-        <div className="sec-title">{lang==='uz'?'Qanday ishlaydi?':'Как это работает?'}</div>
-      </div>
-      <div className="steps fu fu5">
-        {steps.map(s => (
-          <div className="step" key={s.n}>
-            <div className="step-num">{s.n}</div>
-            <div className="step-info"><div className="step-title">{s.t}</div><div className="step-desc">{s.d}</div></div>
+      {/* Dropdown — "Bugun nima yasaymiz?" */}
+      <div className="dropdown-wrap" style={{ marginTop: 16 }}>
+        <button className={`dropdown-btn ${dropOpen ? 'open' : ''}`} onClick={() => setDropOpen(!dropOpen)}>
+          <span style={{ fontSize: 18 }}>✨</span>
+          <span>{lang === 'uz' ? 'Bugun nima yasaymiz?' : 'Что создадим сегодня?'}</span>
+          <svg className="dropdown-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+        </button>
+        {dropOpen && (
+          <div className="dropdown-menu">
+            {cats.map(c => (
+              <button key={c.key} className="dropdown-item" onClick={() => { setDropOpen(false); navigate(`/templates/${c.key}`); }}>
+                <span className="dropdown-item-icon">{c.icon}</span>
+                <span>{c.label}</span>
+              </button>
+            ))}
           </div>
-        ))}
+        )}
       </div>
 
-      <div className="sec-hdr fu fu5">
-        <div className="sec-title">{t.popularTemplates}</div>
+      {/* Maxsus taklifnoma banner */}
+      <div className="custom-banner">
+        <div className="custom-banner-title">{lang === 'uz' ? 'Maxsus taklifnoma buyurtmasi' : 'Индивидуальное приглашение'}</div>
+        <div className="custom-banner-text">
+          {lang === 'uz'
+            ? "Shaxsiy talablaringiz asosida alohida domen va profillik sayt orqali yasab beriladigan maxsus taklifnoma. O'zingiz xohlagan barcha elementlar bilan!"
+            : 'Персональный сайт на отдельном домене с уникальным дизайном по вашим требованиям.'}
+        </div>
+        <div className="custom-banner-price">{lang === 'uz' ? '159 000 so\'mdan' : 'от 159 000 сум'}</div>
+        <div className="feat-row">
+          <div className="feat-row-item"><span className="feat-row-icon">⚡</span> {lang==='uz'?'Tez':'Быстро'}</div>
+          <div className="feat-row-item"><span className="feat-row-icon">⭐</span> {lang==='uz'?'Professional':'Проф.'}</div>
+          <div className="feat-row-item"><span className="feat-row-icon">📱</span> {lang==='uz'?'Mobil':'Мобильный'}</div>
+        </div>
+        <button className="custom-banner-btn" onClick={() => window.open('https://t.me/ndd_admin')}>
+          📩 {lang === 'uz' ? 'Buyurtma berish' : 'Заказать'}
+        </button>
+      </div>
+
+      {/* Tavsiya etiladi */}
+      <div className="sec-hdr" style={{ padding: '0 20px', marginBottom: 12 }}>
+        <div className="sec-title">{lang === 'uz' ? 'Tavsiya etiladi' : 'Рекомендуемые'}</div>
         <Link to="/templates/wedding" className="sec-link">{t.viewAll} →</Link>
       </div>
 
+      {/* Horizontal template cards */}
       {loading ? (
-        <div className="tpl-grid" style={{padding:'0 20px 30px'}}>
-          {[1,2,3,4].map(i => <div key={i} className="skel-card" />)}
-        </div>
+        <div style={{ padding: '0 20px' }}>{[1, 2].map(i => <div key={i} className="skel-card" style={{ height: 160, marginBottom: 12 }} />)}</div>
       ) : templates.length > 0 ? (
-        <div className="tpl-grid fu fu5">
-          {templates.slice(0, 4).map(tp => <TplCard key={tp.id} tp={tp} />)}
-        </div>
+        templates.slice(0, 4).map(tp => {
+          const s = getSampleDisplay(tp);
+          const name = lang === 'uz' ? tp.name_uz : tp.name_ru;
+          const desc = lang === 'uz' ? (tp.tag_uz || '') : (tp.tag_ru || '');
+          return (
+            <div className="tpl-h-card" key={tp.id}>
+              <div className="tpl-h-img" style={{ background: tp.bg_style || 'linear-gradient(135deg, #f5f0e8, #fff9f0)' }}>
+                <div className="tpl-sample" style={{ color: tp.text_color || '#5c4a3a' }}>
+                  <div style={{ fontSize: 16, fontWeight: 700 }}>{s.l1}</div>
+                  {s.l2 && <div style={{ fontSize: 14, fontStyle: 'italic', opacity: .7 }}>{s.l2}</div>}
+                  {s.l3 && <div style={{ fontSize: 16, fontWeight: 700 }}>{s.l3}</div>}
+                  {s.l4 && <div style={{ fontSize: 10, opacity: .6, marginTop: 6 }}>{s.l4}</div>}
+                </div>
+              </div>
+              <div className="tpl-h-info">
+                <div className="tpl-h-name">{cn[tp.category]} {lang === 'uz' ? 'taklifnomasi' : ''}</div>
+                <div className="tpl-h-price">{tp.is_free ? (lang === 'uz' ? 'Bepul' : 'Бесплатно') : tp.price?.toLocaleString() + ' so\'m'}</div>
+                <div className="tpl-h-desc">{desc || name}</div>
+                <div className="tpl-h-btns">
+                  <button className="tpl-h-btn primary" onClick={() => {
+                    if (!user) navigate(`/auth?redirect=/create/${tp.category}/${tp.id}`);
+                    else navigate(`/create/${tp.category}/${tp.id}`);
+                  }}>✦ {lang === 'uz' ? 'Yasash' : 'Создать'}</button>
+                  <button className="tpl-h-btn secondary" onClick={() => navigate(`/preview/${tp.id}`)}>👁 {lang === 'uz' ? 'Ko\'rish' : 'Смотреть'}</button>
+                </div>
+              </div>
+            </div>
+          );
+        })
       ) : (
         <div className="empty-state">
           <div className="empty-state-icon">📭</div>
-          <div className="empty-state-title">{lang==='uz'?'Shablonlar hali qo\'shilmagan':'Шаблоны пока не добавлены'}</div>
-          <div className="empty-state-sub">{lang==='uz'?'Admin paneldan shablon qo\'shing':'Добавьте шаблоны из админ-панели'}</div>
+          <div className="empty-state-title">{lang==='uz'?'Shablonlar qo\'shilmagan':'Шаблоны не добавлены'}</div>
         </div>
       )}
 
+      {/* Social */}
+      <div className="social-footer">
+        <div className="social-footer-text">{lang === 'uz' ? 'Bizning ijtimoiy tarmoqlarimiz' : 'Наши соцсети'}</div>
+        <div className="social-footer-links">
+          <a href="https://t.me/taklifnomachi_online" target="_blank" rel="noopener">✈️</a>
+          <a href="https://www.instagram.com/taklifnomachi.online" target="_blank" rel="noopener">📸</a>
+        </div>
+      </div>
+
       <Footer />
-      <ScrollToTop />
     </div>
   );
 }
