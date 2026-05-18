@@ -1,7 +1,7 @@
 {
   "name": "Taklifnomachi.online",
   "short_name": "Taklifnomachi",
-  "description": "To'y, tug'ilgan kun, tadbir va dil izhorlari uchun raqamli taklifnomalar",
+  "description": "Raqamli taklifnomalar yarating va ulashing",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f7f7fb",
