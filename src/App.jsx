@@ -503,7 +503,7 @@ function SharePage() {
       <div style={{fontSize:12,color:'var(--text2)',marginBottom:6}}>{t.yourCode}:</div>
       <div className="pay-code">{inv.payment_code}</div>
       <button className="copy-btn" style={{margin:'12px auto'}} onClick={()=>copy(inv.payment_code,setCC)}>{codeCopied?`✅ ${t.copied}`:`📋 ${t.copyCode}`}</button>
-      <div style={{marginTop:12}}><button className="bot-btn" onClick={()=>window.open('https://t.me/taklifnomachi_bot')}>🤖 {t.goToBot}</button></div>
+      <div style={{marginTop:12}}><button className="bot-btn" onClick={()=>window.open(`https://t.me/Paycheck_uzbot?start=pay_${inv.payment_code}`)}>🤖 {t.goToBot}</button></div>
       <div style={{borderTop:'1px solid var(--border)',marginTop:24,paddingTop:20}}>
         <label style={{fontSize:13,fontWeight:600}}>{t.customLink}</label>
         <div style={{fontSize:11,color:'var(--text2)',margin:'6px 0 8px'}}>{t.customLinkHint}</div>
