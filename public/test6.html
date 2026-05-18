@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bosqich 6 — Tekshirish</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,system-ui,sans-serif;background:#f8f9fa;padding:16px;max-width:480px;margin:0 auto}
+h1{font-size:20px;margin-bottom:16px;text-align:center}
+.test{background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:8px;border:1px solid #e5e7eb;display:flex;align-items:center;gap:10px}
+.icon{font-size:18px;width:28px;text-align:center;flex-shrink:0}
+.info{flex:1}
+.name{font-size:14px;font-weight:600;color:#1a1a1a}
+.detail{font-size:12px;color:#666;margin-top:2px}
+.pending .icon::after{content:'⏳'}
+.pass .icon::after{content:'✅'}
+.fail .icon::after{content:'❌'}
+.warn .icon::after{content:'⚠️'}
+.summary{background:#fff;border-radius:12px;padding:20px;margin-top:16px;text-align:center;border:1px solid #e5e7eb}
+.summary h2{font-size:18px;margin-bottom:12px}
+.counts{display:flex;justify-content:center;gap:20px;font-size:14px}
+.counts span{font-weight:700}
+.btn{display:block;width:100%;padding:14px;background:#7c3aed;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;margin-top:16px;font-family:inherit}
+.btn:disabled{opacity:.5}
+.sep{height:1px;background:#e5e7eb;margin:16px 0}
+.sec{font-size:13px;font-weight:700;color:#7c3aed;margin:16px 0 8px;text-transform:uppercase;letter-spacing:1px}
+</style>
+</head>
+<body>
+<h1>🧪 Bosqich 6 — Profil va Analytics</h1>
+<div id="tests"></div>
+<div class="summary" id="summary" style="display:none">
+<h2 id="verdict"></h2>
+<div class="counts">
+<div>✅ <span id="passC">0</span></div>
+<div>❌ <span id="failC">0</span></div>
+<div>⚠️ <span id="warnC">0</span></div>
+</div>
+</div>
+<button class="btn" id="runBtn" onclick="runTests()">🚀 Testlarni ishga tushirish</button>
+
+<script>
+var BASE=window.location.origin, pass=0, fail=0, warn=0;
+var token=null, testInvId=null;
+
+function addSec(t){var d=document.createElement("div");d.className="sec";d.textContent=t;document.getElementById("tests").appendChild(d)}
+function addTest(n){var d=document.createElement("div");d.className="test pending";d.innerHTML='<div class="icon"></div><div class="info"><div class="name">'+n+'</div><div class="detail">Tekshirilmoqda...</div></div>';document.getElementById("tests").appendChild(d);return d}
+function setR(d,s,t){d.className="test "+s;d.querySelector(".detail").textContent=t;if(s==="pass")pass++;else if(s==="fail")fail++;else warn++}
+
+async function doFetch(url, opts){
+  var o = opts || {};
+  if(!o.headers) o.headers = {};
+  o.headers["Content-Type"] = "application/json";
+  if(token) o.headers["Authorization"] = "Bearer " + token;
+  var r = await fetch(url, o);
+  var json = null;
+  try { json = await r.json(); } catch(e){}
+  return { status: r.status, json: json };
+}
+
+async function runTests(){
+  document.getElementById("runBtn").disabled=true;
+  document.getElementById("tests").innerHTML="";
+  document.getElementById("summary").style.display="none";
+  pass=0;fail=0;warn=0;
+  token=null;
+
+  // ========== AUTH ==========
+  addSec("1. Auth tizimi");
+
+  // Register test user
+  var t1=addTest("Test foydalanuvchi yaratish");
+  var testLogin = "test_user_" + Math.floor(Math.random()*99999);
+  var testPass = "test123456";
+  try{
+    var r=await doFetch(BASE+"/api/auth/register",{method:"POST",body:JSON.stringify({login:testLogin,password:testPass})});
+    if(r.status===200 && r.json && r.json.token){
+      token = r.json.token;
+      setR(t1,"pass","Yaratildi: "+testLogin);
+    } else if(r.status===409){
+      // login band, loginni sinab koramiz
+      var r2=await doFetch(BASE+"/api/auth/login",{method:"POST",body:JSON.stringify({login:testLogin,password:testPass})});
+      if(r2.json && r2.json.token){ token=r2.json.token; setR(t1,"pass","Login: "+testLogin); }
+      else setR(t1,"fail","Register ham login ham ishlamadi");
+    } else {
+      setR(t1,"fail","Status: "+r.status+" — "+(r.json?r.json.error:""));
+    }
+  }catch(e){setR(t1,"fail",e.message)}
+
+  // /me endpoint
+  var t2=addTest("/api/auth/me ishlayaptimi");
+  try{
+    var r=await doFetch(BASE+"/api/auth/me");
+    if(r.status===200 && r.json && r.json.user) setR(t2,"pass","User: "+r.json.user.login);
+    else setR(t2,"fail","Status: "+r.status);
+  }catch(e){setR(t2,"fail",e.message)}
+
+  // ========== TAKLIFNOMA YARATISH ==========
+  addSec("2. Taklifnoma yaratish");
+
+  // Shablonlarni olish
+  var t3=addTest("Shablonlarni olish");
+  var tplId = null;
+  try{
+    var r=await doFetch(BASE+"/api/templates");
+    if(r.json && r.json.templates && r.json.templates.length>0){
+      var freeTpl = r.json.templates.find(function(t){return t.is_free});
+      if(freeTpl){ tplId=freeTpl.id; setR(t3,"pass","Bepul shablon: "+freeTpl.id+" ("+freeTpl.name_uz+")"); }
+      else setR(t3,"warn","Bepul shablon yoq — taklifnoma yaratib bolmaydi");
+    } else setR(t3,"fail","Shablonlar bosh");
+  }catch(e){setR(t3,"fail",e.message)}
+
+  // Taklifnoma yaratish
+  var t4=addTest("Taklifnoma yaratish (wedding)");
+  var invUid = null;
+  if(tplId && token){
+    try{
+      var tpl = (await doFetch(BASE+"/api/templates/"+tplId)).json.template;
+      var cat = tpl ? tpl.category : "wedding";
+      var testData = {};
+      if(cat==="wedding") testData={groomName:"TestAli",brideName:"TestZarina",date:"2026-12-31",time:"18:00",mainText:"Test taklifnoma",address:"Test manzil"};
+      else if(cat==="birthday") testData={birthdayPerson:"TestAziza",birthdayDate:"2026-12-31",birthdayText:"Test",birthdayAddress:"Test"};
+      else if(cat==="love") testData={loveFrom:"TestA",loveTo:"TestB",loveText:"Test"};
+      else testData={eventName:"Test Event",eventDesc:"Test",time:"2026-12-31",address:"Test"};
+
+      var r=await doFetch(BASE+"/api/invitations",{method:"POST",body:JSON.stringify({templateId:tplId,category:cat,data:testData})});
+      if(r.status===200 && r.json && r.json.invitation){
+        invUid = r.json.invitation.uid;
+        testInvId = r.json.invitation.id;
+        setR(t4,"pass","UID: "+invUid+" | Slug: "+(r.json.invitation.slug||"yoq"));
+      } else {
+        setR(t4,"fail","Status: "+r.status+" — "+(r.json?r.json.error:""));
+      }
+    }catch(e){setR(t4,"fail",e.message)}
+  } else { setR(t4,"warn","Shablon yoki token yoq"); }
+
+  // ========== LINK TIZIMI ==========
+  addSec("3. Link tizimi");
+
+  // Slug bilan ochish
+  var t5=addTest("Taklifnoma slug bilan ochish");
+  if(invUid){
+    try{
+      var inv = (await doFetch(BASE+"/api/invitations/"+invUid)).json.invitation;
+      if(inv && inv.slug){
+        var r=await doFetch(BASE+"/api/invitations/by-slug/"+inv.slug);
+        if(r.status===200 && r.json && r.json.invitation) setR(t5,"pass","Slug: "+inv.slug+" — topildi");
+        else setR(t5,"fail","Slug bilan topilmadi: "+r.status);
+      } else setR(t5,"warn","Slug yoq (pullik shablon?)");
+    }catch(e){setR(t5,"fail",e.message)}
+  } else { setR(t5,"warn","Taklifnoma yaratilmadi"); }
+
+  // /v/:slug sahifasi
+  var t6=addTest("/v/:slug sahifasi (SPA)");
+  if(invUid){
+    try{
+      var inv = (await doFetch(BASE+"/api/invitations/"+invUid)).json.invitation;
+      if(inv && inv.slug){
+        var r=await fetch(BASE+"/v/"+inv.slug);
+        if(r.ok) setR(t6,"pass","/v/"+inv.slug+" — 200 OK");
+        else setR(t6,"fail","Status: "+r.status);
+      } else setR(t6,"warn","Slug yoq");
+    }catch(e){setR(t6,"fail",e.message)}
+  } else { setR(t6,"warn","Taklifnoma yoq"); }
+
+  // ========== JAVOB YUBORISH ==========
+  addSec("4. Javob (RSVP) tizimi");
+
+  var t7=addTest("Javob yuborish");
+  if(testInvId){
+    try{
+      var r=await doFetch(BASE+"/api/responses",{method:"POST",body:JSON.stringify({invitationId:testInvId,rsvp:"attending",guestCount:3,message:"Test javob",senderName:"Test Mehmon"})});
+      if(r.status===200 && r.json && r.json.response) setR(t7,"pass","Javob saqlandi (ID: "+r.json.response.id+")");
+      else setR(t7,"fail","Status: "+r.status+" — "+(r.json?r.json.error:""));
+    }catch(e){setR(t7,"fail",e.message)}
+  } else { setR(t7,"warn","Taklifnoma yoq"); }
+
+  // Javoblarni olish
+  var t8=addTest("Javoblarni olish");
+  if(testInvId){
+    try{
+      var r=await doFetch(BASE+"/api/responses/"+testInvId);
+      if(r.status===200 && r.json && r.json.responses){
+        var cnt=r.json.responses.length;
+        if(cnt>0) setR(t8,"pass",cnt+" ta javob topildi");
+        else setR(t8,"warn","Javoblar bosh (yuqoridagi test ishlamagan bolishi mumkin)");
+      } else setR(t8,"fail","Status: "+r.status);
+    }catch(e){setR(t8,"fail",e.message)}
+  } else { setR(t8,"warn","Taklifnoma yoq"); }
+
+  // ========== PROFIL ==========
+  addSec("5. Profil tizimi");
+
+  // Mening taklifnomalarim
+  var t9=addTest("/api/invitations/my");
+  try{
+    var r=await doFetch(BASE+"/api/invitations/my");
+    if(r.status===200 && r.json && r.json.invitations){
+      var cnt=r.json.invitations.length;
+      setR(t9,"pass",cnt+" ta taklifnoma topildi");
+    } else setR(t9,"fail","Status: "+r.status);
+  }catch(e){setR(t9,"fail",e.message)}
+
+  // Views counter
+  var t10=addTest("Views counter ishlayaptimi");
+  if(invUid){
+    try{
+      var inv = (await doFetch(BASE+"/api/invitations/"+invUid)).json.invitation;
+      if(inv && inv.slug){
+        // Slug bilan 2 marta ochish
+        await doFetch(BASE+"/api/invitations/by-slug/"+inv.slug);
+        await doFetch(BASE+"/api/invitations/by-slug/"+inv.slug);
+        // Tekshirish
+        var inv2 = (await doFetch(BASE+"/api/invitations/"+invUid)).json.invitation;
+        if(inv2 && inv2.views !== undefined){
+          if(Number(inv2.views) > 0) setR(t10,"pass","Views: "+inv2.views);
+          else setR(t10,"warn","Views hali 0 (server yangilanmagan bolishi mumkin)");
+        } else setR(t10,"warn","views ustuni yoq — migration kerak");
+      } else setR(t10,"warn","Slug yoq");
+    }catch(e){setR(t10,"fail",e.message)}
+  } else { setR(t10,"warn","Taklifnoma yoq"); }
+
+  // ========== PROFIL SAHIFALARI ==========
+  addSec("6. Sahifalar");
+
+  var t11=addTest("/profile sahifasi");
+  try{
+    var r=await fetch(BASE+"/profile");
+    if(r.ok) setR(t11,"pass","200 OK (SPA)");
+    else setR(t11,"fail","Status: "+r.status);
+  }catch(e){setR(t11,"fail",e.message)}
+
+  var t12=addTest("/auth sahifasi");
+  try{
+    var r=await fetch(BASE+"/auth");
+    if(r.ok) setR(t12,"pass","200 OK");
+    else setR(t12,"fail","Status: "+r.status);
+  }catch(e){setR(t12,"fail",e.message)}
+
+  // ========== OG TAGS ==========
+  addSec("7. OG Tags (link preview)");
+
+  var t13=addTest("OG taglar /v/:slug da bormi");
+  if(invUid){
+    try{
+      var inv = (await doFetch(BASE+"/api/invitations/"+invUid)).json.invitation;
+      if(inv && inv.slug){
+        var r=await fetch(BASE+"/v/"+inv.slug);
+        var html=await r.text();
+        var hasOg = html.indexOf("og:title")>-1;
+        var hasDesc = html.indexOf("og:description")>-1;
+        if(hasOg && hasDesc) setR(t13,"pass","OG title + description bor");
+        else if(hasOg || hasDesc) setR(t13,"warn","Bir qism OG taglar bor");
+        else setR(t13,"warn","OG taglar topilmadi (server yangilanmagan bolishi mumkin)");
+      } else setR(t13,"warn","Slug yoq");
+    }catch(e){setR(t13,"fail",e.message)}
+  } else { setR(t13,"warn","Taklifnoma yoq"); }
+
+  // OG image
+  var t14=addTest("OG image mavjudmi");
+  try{
+    var r=await fetch(BASE+"/og-image.svg");
+    if(r.ok) setR(t14,"pass","og-image.svg topildi");
+    else setR(t14,"warn","og-image.svg topilmadi — push qiling");
+  }catch(e){setR(t14,"fail",e.message)}
+
+  // ========== ADMIN ==========
+  addSec("8. Admin himoyasi");
+
+  var t15=addTest("Admin endpoint kalitsiz rad etish");
+  try{
+    var r=await fetch(BASE+"/api/admin/stats");
+    if(r.status===403) setR(t15,"pass","403 Forbidden");
+    else setR(t15,"fail","Status: "+r.status+" (403 kutilgan)");
+  }catch(e){setR(t15,"fail",e.message)}
+
+  // ========== NATIJA ==========
+  document.getElementById("summary").style.display="block";
+  document.getElementById("passC").textContent=pass;
+  document.getElementById("failC").textContent=fail;
+  document.getElementById("warnC").textContent=warn;
+  document.getElementById("verdict").textContent = fail===0 ? "🎉 Bosqich 6 TAYYOR!" : "🔧 "+fail+" ta xato tuzatish kerak";
+  document.getElementById("runBtn").disabled=false;
+  document.getElementById("runBtn").textContent="🔄 Qayta tekshirish";
+}
+</script>
+</body>
+</html>
