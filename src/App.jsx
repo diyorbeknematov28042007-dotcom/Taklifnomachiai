@@ -479,7 +479,7 @@ function PreviewPage() {
 
 // ==================== AUTH ====================
 function AuthPage() {
-  const { t, setUser, navigate } = useApp();
+  const { t, lang, setUser, navigate } = useApp();
   const [sp] = useSearchParams();
   const [mode, setMode] = useState('register');
   const [login, setLogin] = useState('');
@@ -515,6 +515,24 @@ function AuthPage() {
         {sugs.length>0&&<div style={{marginTop:8}}><div style={{fontSize:11,color:'var(--text2)',marginBottom:6}}>{t.suggestions}:</div><div className="form-suggest">{sugs.map(s=><button key={s} className="suggest-chip" onClick={()=>setLogin(s)}>{s}</button>)}</div></div>}
         <button className="main-btn" onClick={submit} disabled={busy}>{busy?'...':mode==='login'?t.loginBtn:t.registerBtn}</button>
         <div className="auth-sw">{mode==='login'?t.noAccount:t.hasAccount}{' '}<button onClick={()=>{setMode(m=>m==='login'?'register':'login');setErr('');setSugs([])}}>{mode==='login'?t.registerBtn:t.loginBtn}</button></div>
+
+        {/* Telegram bot orqali ro'yxatdan o'tish tavsiyasi */}
+        <div style={{ marginTop:20, paddingTop:16, borderTop:'1px solid var(--border)' }}>
+          <div style={{ fontSize:12, color:'var(--text3)', textAlign:'center', marginBottom:10 }}>
+            {lang==='uz'?'Shuningdek, quyidagi usullar orqali ham ro\'yxatdan o\'tishingiz mumkin:':'Также можно зарегистрироваться через:'}
+          </div>
+          <a href="https://t.me/Taklifnomachi_online_bot" target="_blank" rel="noopener" style={{
+            display:'flex', alignItems:'center', justifyContent:'center', gap:8,
+            padding:'12px 16px', borderRadius:12, border:'1px solid var(--border)',
+            background:'var(--bg)', textDecoration:'none', color:'var(--text)',
+            fontSize:13, fontWeight:600, marginBottom:8
+          }}>
+            ✈️ Telegram bot orqali
+          </a>
+          <div style={{ fontSize:11, color:'var(--text3)', textAlign:'center' }}>
+            {lang==='uz'?'Tez va qulay — botda maxsus kod orqali ro\'yxatdan o\'ting':'Быстро и удобно — регистрация через бот с уникальным кодом'}
+          </div>
+        </div>
       </div>
     </div>
   );
