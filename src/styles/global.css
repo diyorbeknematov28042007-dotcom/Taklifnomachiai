@@ -482,3 +482,150 @@ textarea.fi { min-height: 80px; resize: vertical; }
 @keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes scaleIn { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: scale(1); } }
 @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+/* ============ BOTTOM NAVIGATION (iOS style) ============ */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 480px;
+  background: rgba(255,255,255,0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-top: 0.5px solid rgba(0,0,0,0.08);
+  display: flex; justify-content: space-around; align-items: center;
+  padding: 8px 0 calc(8px + env(safe-area-inset-bottom, 0px));
+  z-index: 200;
+}
+.nav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 6px 12px; border: none; background: none; cursor: pointer;
+  font-family: 'Inter', sans-serif; font-size: 10px; color: var(--text3);
+  transition: color .2s;
+}
+.nav-item.active { color: var(--purple); }
+.nav-item svg { width: 22px; height: 22px; }
+.app { padding-bottom: 70px; }
+
+/* ============ DROPDOWN SELECT (iOS style) ============ */
+.dropdown-wrap {
+  margin: 0 20px 16px; position: relative;
+}
+.dropdown-btn {
+  width: 100%; display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px; background: var(--white); border: 1.5px solid var(--border);
+  border-radius: 14px; cursor: pointer; font-family: 'Inter', sans-serif;
+  font-size: 14px; font-weight: 500; color: var(--text);
+  transition: border-color .2s, box-shadow .2s;
+}
+.dropdown-btn:hover { border-color: #d4a574; }
+.dropdown-btn.open { border-color: #d4a574; box-shadow: 0 4px 20px rgba(212,165,116,0.15); border-radius: 14px 14px 0 0; }
+.dropdown-icon { margin-left: auto; transition: transform .3s; }
+.dropdown-btn.open .dropdown-icon { transform: rotate(180deg); }
+.dropdown-menu {
+  position: absolute; top: 100%; left: 0; right: 0;
+  background: var(--white); border: 1.5px solid var(--border); border-top: none;
+  border-radius: 0 0 14px 14px; overflow: hidden; z-index: 50;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+}
+.dropdown-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px; cursor: pointer; font-size: 14px;
+  transition: background .15s; border: none; background: none;
+  width: 100%; text-align: left; font-family: 'Inter', sans-serif; color: var(--text);
+}
+.dropdown-item:hover { background: #faf8f5; }
+.dropdown-item-icon { font-size: 20px; width: 28px; text-align: center; }
+
+/* ============ TEMPLATE CARD — HORIZONTAL (new) ============ */
+.tpl-h-card {
+  display: flex; gap: 14px; padding: 14px;
+  background: var(--white); border-radius: 16px;
+  box-shadow: var(--shadow); margin: 0 20px 12px;
+  transition: transform .2s;
+}
+.tpl-h-card:active { transform: scale(0.98); }
+.tpl-h-img {
+  width: 130px; min-height: 150px; border-radius: 12px;
+  background-size: cover; background-position: center;
+  flex-shrink: 0; position: relative; overflow: hidden;
+}
+.tpl-h-img .tpl-sample {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; text-align: center;
+  padding: 10px; font-family: 'Playfair Display', serif;
+}
+.tpl-h-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.tpl-h-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.tpl-h-price { font-size: 13px; font-weight: 700; color: #d4a574; margin-bottom: 4px; }
+.tpl-h-desc { font-size: 12px; color: var(--text2); line-height: 1.4; margin-bottom: 12px; }
+.tpl-h-btns { display: flex; gap: 8px; }
+.tpl-h-btn {
+  padding: 8px 16px; border-radius: 10px; font-size: 12px; font-weight: 600;
+  cursor: pointer; font-family: 'Inter', sans-serif; border: none;
+  transition: transform .15s;
+}
+.tpl-h-btn:active { transform: scale(0.95); }
+.tpl-h-btn.primary { background: #d4a574; color: #fff; }
+.tpl-h-btn.secondary { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+
+/* ============ MAXSUS TAKLIFNOMA BANNER ============ */
+.custom-banner {
+  margin: 0 20px 20px; padding: 20px; border-radius: 16px;
+  background: linear-gradient(135deg, #faf5ee 0%, #f5efe6 100%);
+  border: 1px solid #ebe3d6; position: relative; overflow: hidden;
+}
+.custom-banner::before {
+  content: ''; position: absolute; top: -20px; right: -20px;
+  width: 100px; height: 100px; border-radius: 50%;
+  background: rgba(212,165,116,0.1);
+}
+.custom-banner-title { font-size: 16px; font-weight: 700; color: #5c4a3a; margin-bottom: 6px; }
+.custom-banner-text { font-size: 12px; color: #8a7a6a; line-height: 1.5; margin-bottom: 4px; }
+.custom-banner-price { font-size: 14px; font-weight: 700; color: #d4a574; margin-top: 8px; }
+.custom-banner-btn {
+  margin-top: 12px; padding: 10px 20px; border-radius: 10px;
+  background: #d4a574; color: #fff; border: none;
+  font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+
+/* ============ FEATURES ROW (Tez, Professional, Mobil) ============ */
+.feat-row {
+  display: flex; justify-content: space-around; padding: 12px 0;
+  border-top: 1px solid rgba(0,0,0,0.04);
+}
+.feat-row-item {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: #8a7a6a; font-weight: 500;
+}
+.feat-row-icon { font-size: 16px; color: #d4a574; }
+
+/* ============ FAQ SECTION ============ */
+.faq-item {
+  background: var(--white); border-radius: 14px;
+  margin: 0 20px 8px; overflow: hidden;
+  border: 1px solid var(--border);
+}
+.faq-q {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; cursor: pointer; font-size: 14px; font-weight: 600;
+  border: none; background: none; width: 100%; text-align: left;
+  font-family: 'Inter', sans-serif; color: var(--text);
+}
+.faq-q svg { transition: transform .3s; flex-shrink: 0; }
+.faq-q.open svg { transform: rotate(180deg); }
+.faq-a {
+  padding: 0 16px 14px; font-size: 13px; color: var(--text2); line-height: 1.6;
+}
+
+/* ============ SOCIAL FOOTER (new) ============ */
+.social-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; margin: 0 20px 16px;
+  background: var(--white); border-radius: 14px; border: 1px solid var(--border);
+}
+.social-footer-text { font-size: 13px; font-weight: 600; color: var(--text); }
+.social-footer-links { display: flex; gap: 10px; }
+.social-footer-links a {
+  width: 40px; height: 40px; border-radius: 12px;
+  background: var(--bg); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  text-decoration: none; font-size: 18px; transition: all .2s;
+}
+.social-footer-links a:hover { border-color: #d4a574; background: #faf5ee; }
