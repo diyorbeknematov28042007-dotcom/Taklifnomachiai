@@ -582,32 +582,97 @@ function ViewInvPage() {
 function ProfilePage() {
   const { t, lang, user, logout, navigate } = useApp();
   const [invs, setInvs] = useState([]);
-  useEffect(() => { if(user) api.getMyInvitations().then(d=>setInvs(d.invitations)).catch(()=>{}); }, [user]);
-  if (!user) return <div className="loading">{t.loading}</div>;
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    if (user) api.getMyInvitations().then(d => setInvs(d.invitations)).catch(() => {}).finally(() => setLoading(false));
+    else setLoading(false);
+  }, [user]);
+
+  if (!user) return (
+    <div className="auth-wrap">
+      <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+        <div style={{ fontSize: 48, marginBottom: 12 }}>👤</div>
+        <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>{lang === 'uz' ? 'Avval tizimga kiring' : 'Сначала войдите в систему'}</div>
+        <button className="main-btn" onClick={() => navigate('/auth')}>{t.loginBtn}</button>
+      </div>
+    </div>
+  );
+
   const cn = catNames(t);
+  const catIcons = { wedding: '💍', birthday: '🎂', event: '🎤', love: '❤️' };
+
   const getTitle = (inv) => {
-    const d = typeof inv.data==='string'?JSON.parse(inv.data):inv.data;
-    if(inv.category==='wedding') return `${d.groomName||''} & ${d.brideName||''}`;
-    if(inv.category==='birthday') return d.birthdayPerson||'';
-    if(inv.category==='event') return d.eventName||'';
-    return `${d.loveFrom||''} ❤️ ${d.loveTo||''}`;
+    const d = typeof inv.data === 'string' ? JSON.parse(inv.data) : inv.data;
+    if (inv.category === 'wedding') return `${d.groomName || ''} & ${d.brideName || ''}`;
+    if (inv.category === 'birthday') return d.birthdayPerson || '';
+    if (inv.category === 'event') return d.eventName || '';
+    return `${d.loveFrom || ''} ❤️ ${d.loveTo || ''}`;
   };
+
+  // Stats
+  const total = invs.length;
+  const totalResp = invs.reduce((s, i) => s + (Number(i.response_count) || 0), 0);
+  const totalViews = invs.reduce((s, i) => s + (Number(i.views) || 0), 0);
 
   return (
     <div>
-      <div className="prof-hdr fu"><div className="prof-avatar">{user.login[0]?.toUpperCase()}</div><div className="prof-name">{user.login}</div><div className="prof-id">{t.yourId}: {user.uid}</div></div>
-      <div style={{fontSize:16,fontWeight:700,padding:'0 20px',marginBottom:12}}>{t.myInvitations}</div>
-      {invs.length===0 ? <div style={{textAlign:'center',color:'var(--text2)',padding:'30px 20px',fontSize:13}}>{t.noInvitations}</div>
-        : invs.map(inv=>(
-          <div key={inv.id} className="inv-item" onClick={()=>navigate(`/profile/inv/${inv.id}`)}>
-            <div className="inv-item-type">{cn[inv.category]}</div>
-            <div className="inv-item-title">{getTitle(inv)}</div>
-            <div className="inv-item-date">{t.createdAt}: {new Date(inv.created_at).toLocaleDateString()}</div>
-            {inv.response_count>0&&<div className="inv-item-resp">💬 {inv.response_count} {t.responses}</div>}
+      {/* Profile header */}
+      <div className="prof-hdr fu">
+        <div className="prof-avatar">{user.login[0]?.toUpperCase()}</div>
+        <div className="prof-name">{user.login}</div>
+        <div className="prof-id">{t.yourId}: {user.uid}</div>
+      </div>
+
+      {/* Mini stats */}
+      <div style={{ display: 'flex', gap: 8, padding: '0 20px', marginBottom: 20 }}>
+        {[
+          { v: total, l: lang === 'uz' ? 'Taklifnomalar' : 'Приглашения', i: '📨' },
+          { v: totalResp, l: lang === 'uz' ? 'Javoblar' : 'Ответы', i: '💬' },
+          { v: totalViews, l: lang === 'uz' ? 'Ko\'rishlar' : 'Просмотры', i: '👁' },
+        ].map((s, i) => (
+          <div key={i} style={{ flex: 1, background: 'var(--white)', borderRadius: 12, padding: '14px 10px', textAlign: 'center', boxShadow: 'var(--shadow)' }}>
+            <div style={{ fontSize: 20 }}>{s.i}</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--purple)' }}>{s.v}</div>
+            <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 2 }}>{s.l}</div>
           </div>
-        ))
-      }
+        ))}
+      </div>
+
+      {/* Create new */}
+      <div style={{ padding: '0 20px', marginBottom: 16 }}>
+        <button className="main-btn" onClick={() => navigate('/templates/wedding')} style={{ width: '100%' }}>
+          ✨ {lang === 'uz' ? 'Yangi taklifnoma yaratish' : 'Создать новое приглашение'}
+        </button>
+      </div>
+
+      <div style={{ fontSize: 16, fontWeight: 700, padding: '0 20px', marginBottom: 12 }}>{t.myInvitations}</div>
+
+      {loading ? (
+        <div style={{ padding: '0 20px' }}>{[1, 2].map(i => <div key={i} className="skel-card" style={{ height: 80, marginBottom: 8 }} />)}</div>
+      ) : invs.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-state-icon">📭</div>
+          <div className="empty-state-title">{t.noInvitations}</div>
+          <div className="empty-state-sub">{lang === 'uz' ? 'Birinchi taklifnomangizni yarating!' : 'Создайте своё первое приглашение!'}</div>
+        </div>
+      ) : invs.map(inv => (
+        <div key={inv.id} className="inv-item" onClick={() => navigate(`/profile/inv/${inv.id}`)}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <span style={{ fontSize: 16 }}>{catIcons[inv.category] || '📨'}</span>
+            <span className="inv-item-type" style={{ margin: 0 }}>{cn[inv.category]}</span>
+            {!inv.is_free && !inv.is_paid && <span style={{ fontSize: 10, background: '#fef3c7', color: '#92400e', padding: '2px 6px', borderRadius: 4, fontWeight: 600 }}>💳 {lang === 'uz' ? 'To\'lov kutilmoqda' : 'Ожидает оплаты'}</span>}
+          </div>
+          <div className="inv-item-title">{getTitle(inv)}</div>
+          <div style={{ display: 'flex', gap: 12, marginTop: 6, fontSize: 11, color: 'var(--text3)' }}>
+            <span>📅 {new Date(inv.created_at).toLocaleDateString()}</span>
+            {inv.response_count > 0 && <span>💬 {inv.response_count}</span>}
+            {inv.views > 0 && <span>👁 {inv.views}</span>}
+          </div>
+        </div>
+      ))}
+
       <button className="logout-btn" onClick={logout}>{t.logout}</button>
+      <Footer />
     </div>
   );
 }
@@ -615,9 +680,11 @@ function ProfilePage() {
 // ==================== PROFILE INV DETAIL ====================
 function ProfileInvPage() {
   const { id } = useParams();
-  const { t, lang } = useApp();
+  const { t, lang, navigate } = useApp();
   const [inv, setInv] = useState(null);
   const [resps, setResps] = useState([]);
+  const [copied, setCopied] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     api.getInvByUid(id)
@@ -626,27 +693,94 @@ function ProfileInvPage() {
   }, [id]);
 
   if (!inv) return <div className="loading">{t.loading}</div>;
-  const d = typeof inv.data==='string'?JSON.parse(inv.data):inv.data;
+  const d = typeof inv.data === 'string' ? JSON.parse(inv.data) : inv.data;
   const cn = catNames(t);
+  const title = inv.category === 'wedding' ? `${d.groomName} & ${d.brideName}` : inv.category === 'birthday' ? d.birthdayPerson : inv.category === 'event' ? d.eventName : `${d.loveFrom} → ${d.loveTo}`;
+
+  const copyLink = () => { if (inv.link) navigator.clipboard?.writeText(inv.link).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }); };
+
+  // RSVP stats
+  const attending = resps.filter(r => r.rsvp === 'attending').length;
+  const notAttending = resps.filter(r => r.rsvp === 'notAttending').length;
+  const maybe = resps.filter(r => r.rsvp === 'maybe').length;
+  const totalGuests = resps.filter(r => r.rsvp === 'attending').reduce((s, r) => s + (r.guest_count || 1), 0);
 
   return (
-    <div style={{ padding:'16px 20px' }}>
-      <div className="form-card fu" style={{ marginBottom:16 }}>
-        <div style={{fontSize:11,color:'var(--purple)',fontWeight:700,textTransform:'uppercase',letterSpacing:.5}}>{cn[inv.category]}</div>
-        <div style={{fontSize:18,fontWeight:700,marginTop:6}}>{inv.category==='wedding'?`${d.groomName} & ${d.brideName}`:inv.category==='birthday'?d.birthdayPerson:inv.category==='event'?d.eventName:`${d.loveFrom} → ${d.loveTo}`}</div>
-        {inv.link&&<div className="link-box" style={{marginTop:12,fontSize:11}}>{inv.link}</div>}
-      </div>
-      <div style={{fontSize:16,fontWeight:700,marginBottom:12}}>💬 {t.responses} ({resps.length})</div>
-      {resps.length===0 ? <div style={{textAlign:'center',color:'var(--text2)',padding:20,fontSize:13}}>{t.noResponses}</div>
-        : resps.map(r=>(
-          <div key={r.id} className="inv-item" style={{margin:'0 0 10px'}}>
-            {r.sender_name&&<div style={{fontSize:13,fontWeight:600}}>{r.sender_name}</div>}
-            {r.rsvp&&<div style={{fontSize:12,fontWeight:700,color:r.rsvp==='attending'?'var(--green)':r.rsvp==='notAttending'?'var(--red)':'var(--orange)',marginTop:4}}>{t[r.rsvp]} {r.guest_count>1&&`(${r.guest_count} ${lang==='uz'?'kishi':'чел.'})`}</div>}
-            {r.message&&<div style={{fontSize:14,marginTop:6}}>{r.message}</div>}
-            <div style={{fontSize:11,color:'var(--text2)',marginTop:6}}>{new Date(r.created_at).toLocaleString()}</div>
+    <div style={{ padding: '16px 20px 30px' }}>
+      {/* Header card */}
+      <div className="form-card fu" style={{ marginBottom: 16 }}>
+        <div style={{ fontSize: 11, color: 'var(--purple)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: .5 }}>{cn[inv.category]}</div>
+        <div style={{ fontSize: 18, fontWeight: 700, marginTop: 6 }}>{title}</div>
+        {inv.link && (<>
+          <div className="link-box" style={{ marginTop: 12, fontSize: 11 }}>{inv.link}</div>
+          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+            <button onClick={copyLink} style={{ flex: 1, padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
+              {copied ? '✅' : '📋'} {copied ? (lang === 'uz' ? 'Nusxalandi' : 'Скопировано') : (lang === 'uz' ? 'Nusxalash' : 'Скопировать')}
+            </button>
+            <button onClick={() => window.open(inv.link, '_blank')} style={{ flex: 1, padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
+              👁 {lang === 'uz' ? 'Ko\'rish' : 'Открыть'}
+            </button>
           </div>
-        ))
-      }
+          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+            <button onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(inv.link)}`)} style={{ flex: 1, padding: '10px 12px', borderRadius: 8, border: 'none', background: '#25D366', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>💬 WhatsApp</button>
+            <button onClick={() => window.open(`https://t.me/share/url?url=${encodeURIComponent(inv.link)}`)} style={{ flex: 1, padding: '10px 12px', borderRadius: 8, border: 'none', background: '#0088cc', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>✈️ Telegram</button>
+          </div>
+        </>)}
+        {inv.views > 0 && <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 12 }}>👁 {inv.views} {lang === 'uz' ? 'marta ko\'rildi' : 'просмотров'}</div>}
+      </div>
+
+      {/* RSVP Stats */}
+      {resps.length > 0 && inv.category !== 'love' && (
+        <div className="form-card" style={{ marginBottom: 16, padding: 16 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>📊 {lang === 'uz' ? 'RSVP statistika' : 'Статистика RSVP'}</div>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+            {[
+              { v: attending, l: lang === 'uz' ? 'Keladi' : 'Придут', c: 'var(--green)', bg: '#ecfdf5' },
+              { v: notAttending, l: lang === 'uz' ? 'Kelmaydi' : 'Не придут', c: 'var(--red)', bg: '#fef2f2' },
+              { v: maybe, l: lang === 'uz' ? 'Bilmaydi' : 'Не уверены', c: 'var(--orange)', bg: '#fffbeb' },
+            ].map((s, i) => (
+              <div key={i} style={{ flex: 1, background: s.bg, borderRadius: 10, padding: '10px 8px', textAlign: 'center' }}>
+                <div style={{ fontSize: 20, fontWeight: 800, color: s.c }}>{s.v}</div>
+                <div style={{ fontSize: 10, color: s.c, marginTop: 2 }}>{s.l}</div>
+              </div>
+            ))}
+          </div>
+          {totalGuests > 0 && (
+            <div style={{ background: 'var(--bg)', borderRadius: 8, padding: '10px 12px', fontSize: 13, textAlign: 'center' }}>
+              👥 {lang === 'uz' ? 'Jami mehmonlar' : 'Всего гостей'}: <b style={{ color: 'var(--purple)' }}>{totalGuests}</b>
+            </div>
+          )}
+          {/* Mini bar chart */}
+          {resps.length > 0 && (
+            <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden', marginTop: 10, background: 'var(--bg)' }}>
+              {attending > 0 && <div style={{ width: (attending / resps.length * 100) + '%', background: 'var(--green)' }} />}
+              {maybe > 0 && <div style={{ width: (maybe / resps.length * 100) + '%', background: 'var(--orange)' }} />}
+              {notAttending > 0 && <div style={{ width: (notAttending / resps.length * 100) + '%', background: 'var(--red)' }} />}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Responses */}
+      <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 12 }}>💬 {t.responses} ({resps.length})</div>
+      {resps.length === 0 ? (
+        <div className="empty-state" style={{ padding: '30px 0' }}>
+          <div className="empty-state-icon">💬</div>
+          <div className="empty-state-title">{t.noResponses}</div>
+          <div className="empty-state-sub">{lang === 'uz' ? 'Linkni ulashing — javoblar shu yerda ko\'rinadi' : 'Поделитесь ссылкой — ответы появятся здесь'}</div>
+        </div>
+      ) : resps.map(r => (
+        <div key={r.id} className="inv-item" style={{ margin: '0 0 10px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {r.sender_name && <div style={{ fontSize: 14, fontWeight: 600 }}>{r.sender_name}</div>}
+            <div style={{ fontSize: 11, color: 'var(--text3)' }}>{new Date(r.created_at).toLocaleDateString()}</div>
+          </div>
+          {r.rsvp && <div style={{ fontSize: 12, fontWeight: 700, color: r.rsvp === 'attending' ? 'var(--green)' : r.rsvp === 'notAttending' ? 'var(--red)' : 'var(--orange)', marginTop: 4 }}>
+            {t[r.rsvp]} {r.guest_count > 1 && `(${r.guest_count} ${lang === 'uz' ? 'kishi' : 'чел.'})`}
+          </div>}
+          {r.message && <div style={{ fontSize: 14, marginTop: 6, color: 'var(--text2)' }}>{r.message}</div>}
+        </div>
+      ))}
     </div>
   );
 }
