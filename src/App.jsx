@@ -36,7 +36,7 @@ export default function App() {
 
   return (
     <AppContext.Provider value={ctx}>
-      <div className="app">
+      <div className="app"><main>
         <Header toggleLang={toggleLang} />
         <Routes>
           <Route path="/" element={<Home />} />
@@ -53,7 +53,7 @@ export default function App() {
           <Route path="/admin" element={<AdminPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-        <BottomNav />
+        </main><BottomNav />
       </div>
     </AppContext.Provider>
   );
@@ -76,7 +76,7 @@ function BottomNav() {
   return (
     <div className="bottom-nav">
       {items.map(it => (
-        <button key={it.key} className={`nav-item ${path===it.key?'active':''}`} onClick={() => navigate(it.key)}>
+        <button key={it.key} className={`nav-item ${path===it.key?'active':''}`} aria-label={it.label} onClick={() => navigate(it.key)}>
           {it.icon}
           <span>{it.label}</span>
         </button>
@@ -188,8 +188,8 @@ function Header({ toggleLang }) {
         </Link>
       </div>
       <div className="hdr-right">
-        <button className="lang-btn" onClick={toggleLang}>🌐 {t.langCode} ▾</button>
-        <button className="icon-btn" onClick={() => navigate(user ? '/profile' : '/auth')}>
+        <button className="lang-btn" onClick={toggleLang} aria-label="Tilni o'zgartirish">🌐 {t.langCode} ▾</button>
+        <button className="icon-btn" aria-label="Profil" onClick={() => navigate(user ? '/profile' : '/auth')}>
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="6.5" r="3" stroke="currentColor" strokeWidth="1.5"/><path d="M3 16c0-3 3-5 6-5s6 2 6 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
         </button>
       </div>
@@ -220,8 +220,8 @@ function Footer() {
       <div className="footer-brand">{t.brand}<span>{t.brandDot}</span></div>
       <div className="footer-desc">{lang === 'uz' ? "To'y, tug'ilgan kun, tadbir va dil izhorlari uchun raqamli taklifnomalar" : 'Цифровые приглашения на свадьбу, день рождения и мероприятия'}</div>
       <div className="footer-social">
-        <a href="https://t.me/taklifnomachi_online" target="_blank" rel="noopener"><TgIcon size={20} color="#0088cc"/></a>
-        <a href="https://www.instagram.com/taklifnomachi.online" target="_blank" rel="noopener"><IgIcon size={20} color="#E4405F"/></a>
+        <a href="https://t.me/taklifnomachi_online" target="_blank" rel="noopener" aria-label="Telegram"><TgIcon size={20} color="#0088cc"/></a>
+        <a href="https://www.instagram.com/taklifnomachi.online" target="_blank" rel="noopener" aria-label="Instagram"><IgIcon size={20} color="#E4405F"/></a>
       </div>
       <div className="footer-copy">© {new Date().getFullYear()} Taklifnomachi.online</div>
     </div>
@@ -345,8 +345,8 @@ function Home() {
       <div className="social-footer">
         <div className="social-footer-text">{lang === 'uz' ? 'Bizning ijtimoiy tarmoqlarimiz' : 'Наши соцсети'}</div>
         <div className="social-footer-links">
-          <a href="https://t.me/taklifnomachi_online" target="_blank" rel="noopener"><TgIcon size={20} color="#0088cc"/></a>
-          <a href="https://www.instagram.com/taklifnomachi.online" target="_blank" rel="noopener"><IgIcon size={20} color="#E4405F"/></a>
+          <a href="https://t.me/taklifnomachi_online" target="_blank" rel="noopener" aria-label="Telegram"><TgIcon size={20} color="#0088cc"/></a>
+          <a href="https://www.instagram.com/taklifnomachi.online" target="_blank" rel="noopener" aria-label="Instagram"><IgIcon size={20} color="#E4405F"/></a>
         </div>
       </div>
 
