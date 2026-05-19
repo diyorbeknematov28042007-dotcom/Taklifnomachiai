@@ -255,11 +255,15 @@ app.post('/api/invitations', authMiddleware, createLimiter, async (req, res) => 
       else names = transliterate(data.eventName || '');
       slug = `${category}-${names}-${uid}`.slice(0, 90);
       link = `${SITE_URL}/v/${slug}`;
-    } else if (customSlug) {
-      const cs = sanitize(customSlug, 30).replace(/[^a-zA-Z0-9-]/g, '');
-      const ex = await sql`SELECT id FROM invitations WHERE slug = ${cs}`;
-      if (ex.length > 0) return res.status(409).json({ error: 'Bu slug band' });
-      slug = cs;
+    } else {
+      // Premium ham slug va link oladi (to'lov tasdiqlanguncha is_paid=false)
+      let names = '';
+      if (category === 'wedding') names = transliterate((data.groomName || '') + '-' + (data.brideName || ''));
+      else if (category === 'birthday') names = transliterate(data.birthdayPerson || '');
+      else if (category === 'love') names = transliterate((data.loveFrom || '') + '-' + (data.loveTo || ''));
+      else names = transliterate(data.eventName || '');
+      slug = `${category}-${names}-${uid}`.slice(0, 90);
+      link = `${SITE_URL}/v/${slug}`;
     }
 
     const paymentCode = !isFree ? generateUID() : null;
@@ -348,17 +352,53 @@ app.get('/api/responses/:invitationId', authMiddleware, async (req, res) => {
 });
 
 // ==================== PAYMENTS ====================
+
+// Bot uchun — kod bo'yicha to'lov ma'lumotlarini olish
+app.get('/api/payments/check/:code', async (req, res) => {
+  try {
+    const code = sanitize(req.params.code, 10);
+    const p = await sql`
+      SELECT p.*, i.category, i.data, i.slug, i.link, i.template_id,
+        t.name_uz, t.name_ru, t.price as tpl_price,
+        u.login as user_login
+      FROM payments p
+      JOIN invitations i ON p.invitation_id = i.id
+      JOIN templates t ON i.template_id = t.id
+      JOIN users u ON p.user_id = u.id
+      WHERE p.code = ${code}
+      ORDER BY p.created_at DESC LIMIT 1`;
+    if (p.length === 0) return res.status(404).json({ error: 'Kod topilmadi' });
+    const pay = p[0];
+    res.json({
+      payment: {
+        id: pay.id, code: pay.code, amount: pay.amount, status: pay.status,
+        category: pay.category, slug: pay.slug, link: pay.link,
+        template_name: pay.name_uz, user_login: pay.user_login,
+        data: pay.data, created_at: pay.created_at
+      }
+    });
+  } catch (e) { logError('payCheck', e); res.status(500).json({ error: 'Server xatosi' }); }
+});
+
+// Bot'dan chaqiriladi — to'lovni tasdiqlash (avto yoki admin)
 app.post('/api/payments/verify', async (req, res) => {
   try {
     const { code, telegramId } = req.body;
     if (!code) return res.status(400).json({ error: 'Kod kerak' });
     const p = await sql`SELECT * FROM payments WHERE code = ${sanitize(code, 10)} AND status = 'pending'`;
-    if (p.length === 0) return res.status(404).json({ error: 'To\'lov topilmadi' });
+    if (p.length === 0) return res.status(404).json({ error: 'To\'lov topilmadi yoki allaqachon tasdiqlangan' });
     const pay = p[0];
+
+    // To'lovni tasdiqlash
     await sql`UPDATE payments SET status = 'paid', telegram_id = ${telegramId || null}, paid_at = NOW() WHERE id = ${pay.id}`;
+    // Taklifnomani aktivlashtirish
     await sql`UPDATE invitations SET is_paid = true WHERE id = ${pay.invitation_id}`;
+    // Telegram ID saqlash
     if (telegramId) await sql`UPDATE users SET telegram_id = ${telegramId} WHERE id = ${pay.user_id}`;
-    res.json({ success: true });
+
+    // Link qaytarish
+    const inv = await sql`SELECT link, slug FROM invitations WHERE id = ${pay.invitation_id}`;
+    res.json({ success: true, link: inv[0]?.link || null, slug: inv[0]?.slug || null });
   } catch (e) { logError('payment', e); res.status(500).json({ error: 'Server xatosi' }); }
 });
 
