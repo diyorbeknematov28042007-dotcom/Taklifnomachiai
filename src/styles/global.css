@@ -553,7 +553,7 @@ textarea.fi { min-height: 80px; resize: vertical; }
 }
 .tpl-h-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
 .tpl-h-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
-.tpl-h-price { font-size: 13px; font-weight: 700; color: #d4a574; margin-bottom: 4px; }
+.tpl-h-price { font-size: 13px; font-weight: 700; color: #996b3d; margin-bottom: 4px; }
 .tpl-h-desc { font-size: 12px; color: var(--text2); line-height: 1.4; margin-bottom: 12px; }
 .tpl-h-btns { display: flex; gap: 8px; }
 .tpl-h-btn {
@@ -562,7 +562,7 @@ textarea.fi { min-height: 80px; resize: vertical; }
   transition: transform .15s;
 }
 .tpl-h-btn:active { transform: scale(0.95); }
-.tpl-h-btn.primary { background: #d4a574; color: #fff; }
+.tpl-h-btn.primary { background: #9e7442; color: #fff; }
 .tpl-h-btn.secondary { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
 
 /* ============ MAXSUS TAKLIFNOMA BANNER ============ */
@@ -578,7 +578,7 @@ textarea.fi { min-height: 80px; resize: vertical; }
 }
 .custom-banner-title { font-size: 16px; font-weight: 700; color: #5c4a3a; margin-bottom: 6px; }
 .custom-banner-text { font-size: 12px; color: #8a7a6a; line-height: 1.5; margin-bottom: 4px; }
-.custom-banner-price { font-size: 14px; font-weight: 700; color: #d4a574; margin-top: 8px; }
+.custom-banner-price { font-size: 14px; font-weight: 700; color: #8a6234; margin-top: 8px; }
 .custom-banner-btn {
   margin-top: 12px; padding: 10px 20px; border-radius: 10px;
   background: #d4a574; color: #fff; border: none;
