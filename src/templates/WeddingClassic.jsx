@@ -95,7 +95,7 @@ export default function WeddingClassic({ data, invitation, onRespond, sent }) {
       <div style={{
         position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '40px 20px',
-        background: 'linear-gradient(180deg, #5c4a3a 0%, #3a2e24 40%, #2a1f16 100%)',
+        background: 'linear-gradient(180deg, rgba(42,31,22,0.3) 0%, rgba(42,31,22,0.6) 50%, rgba(42,31,22,0.85) 100%), url(\'https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80\') center/cover',
         color: T.textLight,
       }}>
         {/* Dekorativ doiralar */}
