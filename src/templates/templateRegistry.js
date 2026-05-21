@@ -4,6 +4,7 @@ import { lazy } from 'react';
 const WeddingClassic = lazy(() => import('./WeddingClassic'));
 const WeddingModern = lazy(() => import('./WeddingModern'));
 const WeddingDark = lazy(() => import('./WeddingDark'));
+const WeddingGulzor = lazy(() => import('./WeddingGulzor'));
 const BirthdayParty = lazy(() => import('./BirthdayParty'));
 const BirthdayKids = lazy(() => import('./BirthdayKids'));
 const LoveRomantic = lazy(() => import('./LoveRomantic'));
@@ -15,7 +16,8 @@ const registry = {
   // To'y
   'w1': WeddingClassic,   // Oq-oltin klassik
   'w2': WeddingModern,    // Binafsha zamonaviy
-  'w3': WeddingDark,      // Qorong'u luxury
+  'w3': WeddingDark,      // Oq qush ko'li
+  'w4': WeddingGulzor,    // Sehrli qasr
   // Tug'ilgan kun
   'b1': BirthdayParty,    // Bayram confetti
   'b2': BirthdayKids,     // Bolalar cute
