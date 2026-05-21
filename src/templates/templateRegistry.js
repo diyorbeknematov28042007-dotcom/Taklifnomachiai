@@ -5,6 +5,7 @@ const WeddingClassic = lazy(() => import('./WeddingClassic'));
 const WeddingModern = lazy(() => import('./WeddingModern'));
 const WeddingDark = lazy(() => import('./WeddingDark'));
 const WeddingGulzor = lazy(() => import('./WeddingGulzor'));
+const WeddingParis = lazy(() => import('./WeddingParis'));
 const BirthdayParty = lazy(() => import('./BirthdayParty'));
 const BirthdayKids = lazy(() => import('./BirthdayKids'));
 const LoveRomantic = lazy(() => import('./LoveRomantic'));
@@ -18,6 +19,7 @@ const registry = {
   'w2': WeddingModern,    // Binafsha zamonaviy
   'w3': WeddingDark,      // Oq qush ko'li
   'w4': WeddingGulzor,    // Sehrli qasr
+  'w5': WeddingParis,     // Parisdagi tun
   // Tug'ilgan kun
   'b1': BirthdayParty,    // Bayram confetti
   'b2': BirthdayKids,     // Bolalar cute
