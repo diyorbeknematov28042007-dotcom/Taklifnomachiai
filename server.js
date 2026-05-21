@@ -255,16 +255,8 @@ app.post('/api/invitations', authMiddleware, createLimiter, async (req, res) => 
       else names = transliterate(data.eventName || '');
       slug = `${category}-${names}-${uid}`.slice(0, 90);
       link = `${SITE_URL}/v/${slug}`;
-    } else {
-      // Premium ham slug va link oladi (to'lov tasdiqlanguncha is_paid=false)
-      let names = '';
-      if (category === 'wedding') names = transliterate((data.groomName || '') + '-' + (data.brideName || ''));
-      else if (category === 'birthday') names = transliterate(data.birthdayPerson || '');
-      else if (category === 'love') names = transliterate((data.loveFrom || '') + '-' + (data.loveTo || ''));
-      else names = transliterate(data.eventName || '');
-      slug = `${category}-${names}-${uid}`.slice(0, 90);
-      link = `${SITE_URL}/v/${slug}`;
     }
+    // Premium — slug va link yo'q, foydalanuvchi to'lovdan keyin o'zi tanlaydi
 
     const paymentCode = !isFree ? generateUID() : null;
     const dataStr = JSON.stringify(data);
