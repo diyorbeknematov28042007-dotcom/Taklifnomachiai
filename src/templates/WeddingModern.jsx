@@ -19,6 +19,42 @@ const T = {
   body: "'Cormorant Garamond',serif",
 };
 
+
+// Gul bezak — pastki qismlarda ishlatiladi
+const FloralCorner = ({position='bottom-right', color='#c9a84c', size=120}) => {
+  const flip = position.includes('left') ? 'scaleX(-1)' : 'scaleX(1)';
+  const isTop = position.includes('top');
+  return (
+    <svg width={size} height={size} viewBox="0 0 120 120" fill="none" 
+      style={{position:'absolute', [isTop?'top':'bottom']:0, [position.includes('left')?'left':'right']:0, transform:flip+(isTop?' scaleY(-1)':''), opacity:.15, pointerEvents:'none'}}>
+      <path d="M120 120 C100 100 80 110 60 105 C40 100 30 80 35 60 C40 40 55 30 70 35 C85 40 90 55 85 70" stroke={color} strokeWidth="1.2" fill="none"/>
+      <circle cx="85" cy="70" r="8" fill={color} opacity=".2"/>
+      <circle cx="70" cy="35" r="6" fill={color} opacity=".15"/>
+      <circle cx="35" cy="60" r="7" fill={color} opacity=".18"/>
+      <path d="M85 70 C95 65 105 70 110 80" stroke={color} strokeWidth="0.8" fill="none"/>
+      <path d="M85 70 C80 80 85 95 95 100" stroke={color} strokeWidth="0.8" fill="none"/>
+      <circle cx="110" cy="80" r="4" fill={color} opacity=".12"/>
+      <circle cx="95" cy="100" r="5" fill={color} opacity=".14"/>
+      <path d="M60 105 C50 110 40 115 25 115" stroke={color} strokeWidth="0.6" fill="none"/>
+      <circle cx="25" cy="115" r="3" fill={color} opacity=".1"/>
+      <ellipse cx="85" cy="70" rx="12" ry="8" fill={color} opacity=".08" transform="rotate(-20 85 70)"/>
+      <ellipse cx="70" cy="35" rx="10" ry="6" fill={color} opacity=".06" transform="rotate(30 70 35)"/>
+      <path d="M35 60 C20 50 10 55 5 70" stroke={color} strokeWidth="0.6" fill="none"/>
+      <path d="M35 60 C25 70 20 85 25 100" stroke={color} strokeWidth="0.6" fill="none"/>
+    </svg>
+  );
+};
+
+const FloralDivider = ({color='#c9a84c'}) => (
+  <svg width="240" height="40" viewBox="0 0 240 40" fill="none" style={{display:'block',margin:'0 auto'}}>
+    <line x1="0" y1="20" x2="80" y2="20" stroke={color} strokeWidth="0.4" opacity=".3"/>
+    <circle cx="90" cy="20" r="3" fill={color} opacity=".2"/>
+    <path d="M105 12 C110 8 118 8 120 14 C122 8 130 8 135 12 C140 18 120 30 120 30 C120 30 100 18 105 12Z" fill={color} opacity=".25"/>
+    <circle cx="150" cy="20" r="3" fill={color} opacity=".2"/>
+    <line x1="160" y1="20" x2="240" y2="20" stroke={color} strokeWidth="0.4" opacity=".3"/>
+  </svg>
+);
+
 // ========== ISLOMIY SVG BEZAKLAR ==========
 const Bismillah = ({color='#c9a84c'}) => (
   <svg width="200" height="50" viewBox="0 0 200 50" style={{display:'block',margin:'0 auto'}}>
@@ -132,8 +168,10 @@ export default function WeddingModern({ data, invitation, onRespond, sent }) {
         />
       </div>
 
-      {/* ============ OYAT — Krem fon ============ */}
-      <Reveal style={{padding:'50px 24px', textAlign:'center', background:T.cream}}>
+      {/* ============ OYAT — Krem fon + gullar ============ */}
+      <Reveal style={{padding:'50px 24px', textAlign:'center', background:T.cream, position:'relative', overflow:'hidden'}}>
+        <FloralCorner position='bottom-right' color={T.goldDim} size={140}/>
+        <FloralCorner position='bottom-left' color={T.goldDim} size={140}/>
         <div style={{fontFamily:"'Traditional Arabic','Times New Roman',serif", fontSize:22, color:T.goldDim, marginBottom:14, lineHeight:1.6}}>
           وَجَعَلْنَا بَيْنَكُم مَّوَدَّةً وَرَحْمَةً
         </div>
@@ -143,14 +181,18 @@ export default function WeddingModern({ data, invitation, onRespond, sent }) {
       </Reveal>
 
       {/* ============ MAROSIM SANASI — Oq fon ============ */}
-      <Reveal style={{padding:'50px 20px', background:'#fff'}}>
+      <Reveal style={{padding:'50px 20px', background:'#fff', position:'relative', overflow:'hidden'}}>
+        <FloralCorner position='top-right' color={T.goldDim} size={100}/>
+        <FloralCorner position='top-left' color={T.goldDim} size={100}/>
         <SectionTitle color={T.goldDim}><span style={{color:T.textDark}}>Marosim sanasi</span></SectionTitle>
         <Calendar date={d.date||'2026-06-15'} time={d.time||'18:00'} accentColor={T.green} textColor={T.textDark} />
       </Reveal>
 
       {/* ============ LOKATSIYA — Krem fon ============ */}
       {d.address && (
-        <div ref={locRef} style={{padding:'50px 20px', textAlign:'center', background:T.cream}}>
+        <div ref={locRef} style={{padding:'50px 20px', textAlign:'center', background:T.cream, position:'relative', overflow:'hidden'}}>
+          <FloralCorner position='top-right' color={T.goldDim} size={110}/>
+          <FloralCorner position='top-left' color={T.goldDim} size={110}/>
           <SectionTitle color={T.goldDim}><span style={{color:T.textDark}}>Lokatsiya</span></SectionTitle>
           <div style={{opacity:locSeen?1:0, transform:locSeen?'translateY(0)':'translateY(20px)', transition:'all .8s ease'}}>
             <div style={{marginBottom:12}}><LocationPin size={40} color={T.green}/></div>
@@ -161,7 +203,9 @@ export default function WeddingModern({ data, invitation, onRespond, sent }) {
 
       {/* ============ SOVG'A — Oq fon ============ */}
       {d.cardNumber && (
-        <div ref={giftRef} style={{padding:'50px 20px', textAlign:'center', background:'#fff'}}>
+        <div ref={giftRef} style={{padding:'50px 20px', textAlign:'center', background:'#fff', position:'relative', overflow:'hidden'}}>
+          <FloralCorner position='bottom-right' color={T.goldDim} size={130}/>
+          <FloralCorner position='bottom-left' color={T.goldDim} size={130}/>
           <SectionTitle color={T.goldDim}><span style={{color:T.textDark}}>Sovg'a</span></SectionTitle>
           <div style={{opacity:giftSeen?1:0, transform:giftSeen?'translateY(0)':'translateY(20px)', transition:'all .8s ease'}}>
             <p style={{fontSize:14, color:T.textMuted, lineHeight:1.6, maxWidth:320, margin:'0 auto 20px'}}>
@@ -180,6 +224,7 @@ export default function WeddingModern({ data, invitation, onRespond, sent }) {
       </Reveal>
 
       {/* ============ FOOTER ============ */}
+      <div style={{background:T.green, padding:'16px 0'}}><FloralDivider color={T.gold}/></div>
       <div style={{padding:'28px 20px', textAlign:'center', background:T.heroGreen}}>
         <GoldOrnament color={T.gold}/>
         <div style={{fontSize:14, color:T.goldLight, marginTop:12, fontFamily:T.font, letterSpacing:2}}>
