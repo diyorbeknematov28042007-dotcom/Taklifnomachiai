@@ -680,7 +680,7 @@ function SharePage() {
     }
   };
 
-  if ((inv.is_free || inv.is_paid) && inv.link) {
+  if (inv.is_free && inv.link) {
     return (
       <div className="share-card fu">
         <div style={{fontSize:48,marginBottom:12}}><SparkleIcon size={48} color='var(--purple)'/></div>
