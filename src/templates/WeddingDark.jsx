@@ -23,11 +23,7 @@ const T = {
 
 // ========== SVG BEZAKLAR ==========
 
-const Bismillah = ({color='#c4a855'}) => (
-  <svg width="200" height="45" viewBox="0 0 200 45" style={{display:'block',margin:'0 auto'}}>
-    <text x="100" y="30" textAnchor="middle" fontFamily="'Traditional Arabic','Times New Roman',serif" fontSize="30" fill={color} opacity=".9">بِسْمِ ٱللَّٰهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</text>
-  </svg>
-);
+// Bismillah olib tashlandi
 
 const GoldOrnament = ({color='#c4a855'}) => (
   <svg width="160" height="20" viewBox="0 0 160 20" style={{display:'block',margin:'0 auto'}}>
@@ -148,8 +144,7 @@ export default function WeddingDark({ data, invitation, onRespond, sent }) {
         <div style={{position:'absolute',bottom:0,left:0,right:0,height:100,background:`linear-gradient(transparent,${T.greenDark})`}}/>
 
         <div style={{ opacity:heroOn?1:0, transform:heroOn?'translateY(0)':'translateY(30px)', transition:'all 1.5s ease', position:'relative', zIndex:1 }}>
-          <Bismillah color={T.goldLight}/>
-          <div style={{fontSize:11, letterSpacing:5, textTransform:'uppercase', color:T.gold, marginTop:10, marginBottom:20}}>Nikoh oqshomiga taklif qilamiz</div>
+          <div style={{fontSize:11, letterSpacing:5, textTransform:'uppercase', color:T.gold, marginBottom:20}}>To'y oqshomiga taklif qilamiz</div>
 
           <div style={{fontFamily:T.font, fontSize:44, fontWeight:700, letterSpacing:3, lineHeight:1.1, textShadow:'0 2px 24px rgba(0,0,0,0.4)'}}>
             {(d.groomName||'KUYOV').toUpperCase()}
@@ -163,9 +158,8 @@ export default function WeddingDark({ data, invitation, onRespond, sent }) {
             <GoldOrnament color={T.goldLight}/>
           </div>
 
-          <div style={{fontSize:14, fontStyle:'italic', color:T.goldLight, opacity:.75, maxWidth:280, margin:'0 auto', lineHeight:1.6}}>
-            "Va Ular uchun o'z juftlaridan sokinlik yaratdi."
-            <br/><span style={{fontSize:12, opacity:.6}}>(Ar-Rum 21)</span>
+          <div style={{fontSize:15, fontStyle:'italic', color:T.goldLight, opacity:.75, letterSpacing:1}}>
+            Baxt to'yimizga taklif etamiz
           </div>
 
           {/* Oq qu */}
@@ -181,7 +175,7 @@ export default function WeddingDark({ data, invitation, onRespond, sent }) {
 
       {/* ============ COUNTDOWN — Yashil fon ============ */}
       <div style={{background:T.greenDark, padding:'40px 24px', textAlign:'center'}}>
-        <SectionTitle color={T.gold}><span style={{color:T.goldLight}}>To'y marosimigacha</span></SectionTitle>
+        <SectionTitle color={T.gold}><span style={{color:T.goldLight}}>To'y kunigacha</span></SectionTitle>
         <Countdown date={d.date||'2026-06-15'}
           style={{marginTop:8}}
           itemStyle={{background:'rgba(196,168,85,0.1)', borderColor:'rgba(196,168,85,0.25)', width:65, height:65}}
@@ -197,11 +191,11 @@ export default function WeddingDark({ data, invitation, onRespond, sent }) {
       <Reveal style={{padding:'40px 24px 50px', textAlign:'center', background:T.cream, position:'relative', overflow:'hidden'}}>
         <FloralCorner position='bottom-right' color={T.goldDim} size={140}/>
         <FloralCorner position='bottom-left' color={T.goldDim} size={140}/>
-        <div style={{fontFamily:"'Traditional Arabic','Times New Roman',serif", fontSize:22, color:T.goldDim, marginBottom:14, lineHeight:1.6}}>
-          وَجَعَلْنَا بَيْنَكُم مَّوَدَّةً وَرَحْمَةً
+        <div style={{marginBottom:16}}>
+          <SwanShape size={70} color="rgba(154,133,64,0.4)"/>
         </div>
-        <p style={{fontSize:15, fontStyle:'italic', lineHeight:1.75, color:T.textMuted, maxWidth:340, margin:'0 auto'}}>
-          {d.mainText||'"Biz sizlar orasida muhabbat va rahm-shafqatni vujudga keltirdik."\n(Ar-Rum 21)'}
+        <p style={{fontSize:16, fontStyle:'italic', lineHeight:1.75, color:T.textMuted, maxWidth:340, margin:'0 auto'}}>
+          {d.mainText||'"Aziz mehmonlarimiz, hayotimizdagi eng baxtli kunni siz bilan birga nishonlashni istaymiz. Sizning tashrifingiz biz uchun eng katta sovg\'adir."'}
         </p>
       </Reveal>
 
@@ -245,12 +239,24 @@ export default function WeddingDark({ data, invitation, onRespond, sent }) {
         </div>
       )}
 
+      {/* ============ QU VA GULLAR — Krem fon ============ */}
+      <Reveal style={{padding:'40px 24px', textAlign:'center', background:T.cream, position:'relative', overflow:'hidden'}}>
+        <FloralCorner position='top-right' color={T.goldDim} size={150}/>
+        <FloralCorner position='top-left' color={T.goldDim} size={150}/>
+        <FloralCorner position='bottom-right' color={T.goldDim} size={130}/>
+        <FloralCorner position='bottom-left' color={T.goldDim} size={130}/>
+        <div style={{animation:'floatSwan 6s ease-in-out infinite'}}>
+          <SwanShape size={100} color="rgba(90,82,64,0.3)"/>
+        </div>
+        <GoldOrnament color={T.goldDim}/>
+      </Reveal>
+
       {/* ============ RSVP — Yashil fon ============ */}
       <div style={{background:T.greenDark}}>
         <WaveDivider color={d.cardNumber ? T.cream : T.creamLight} bg={T.greenDark}/>
       </div>
       <Reveal style={{padding:'30px 24px 40px', textAlign:'center', background:T.greenDark}}>
-        <SectionTitle color={T.gold}><span style={{color:T.goldLight}}>Taklifni tasdiqlang</span></SectionTitle>
+        <SectionTitle color={T.gold}><span style={{color:T.goldLight}}>Javobingiz</span></SectionTitle>
         <div style={{fontSize:14, color:T.goldLight, opacity:.6, marginBottom:20}}>Ishtirokingiz biz uchun muhim</div>
         <RsvpForm onRespond={onRespond} sent={sent} accentColor={T.gold} textColor={T.textLight} />
       </Reveal>
@@ -262,7 +268,7 @@ export default function WeddingDark({ data, invitation, onRespond, sent }) {
           <SwanShape size={40} color="rgba(196,168,85,0.3)"/>
         </div>
         <div style={{fontSize:14, color:T.goldLight, marginTop:8, fontFamily:T.font, letterSpacing:2}}>
-          Alloh sizdan rozi bo'lsin ♡
+          Sizni sevgi bilan kutamiz ♡
         </div>
         <div style={{fontSize:12, color:'rgba(196,168,85,0.3)', marginTop:6}}>
           {d.groomName} & {d.brideName}
