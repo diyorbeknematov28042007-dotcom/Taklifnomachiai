@@ -11,6 +11,60 @@ function useApp() { return useContext(AppContext); }
 function TgIcon({size=16,color='currentColor'}) {
   return <svg style={{width:size,height:size,verticalAlign:'middle',flexShrink:0}} viewBox="0 0 24 24" fill={color}><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>;
 }
+
+// ==================== UI ICONS (zamonaviy SVG) ====================
+function RingIcon({size=18,color='currentColor'}) {
+  return <svg style={{width:size,height:size,verticalAlign:'middle',flexShrink:0}} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="14" r="7" stroke={color} strokeWidth="1.5"/><path d="M12 7V3M9 4.5h6" stroke={color} strokeWidth="1.5" strokeLinecap="round"/><circle cx="12" cy="14" r="3" stroke={color} strokeWidth="1" opacity=".4"/></svg>;
+}
+function CakeIcon({size=18,color='currentColor'}) {
+  return <svg style={{width:size,height:size,verticalAlign:'middle',flexShrink:0}} viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="10" rx="2" stroke={color} strokeWidth="1.5"/><path d="M3 15h18" stroke={color} strokeWidth="1"/><path d="M8 11V9a1 1 0 011-1h0a1 1 0 011 1v2M14 11V9a1 1 0 011-1h0a1 1 0 011 1v2" stroke={color} strokeWidth="1.2"/><path d="M8.5 5.5C8.5 4 9.5 3 9.5 3s1 1 1 2.5M14.5 5.5c0-1.5 1-2.5 1-2.5s1 1 1 2.5" stroke={color} strokeWidth="1" strokeLinecap="round" opacity=".6"/></svg>;
+}
+function PartyIcon({size=18,color='currentColor'}) {
+  return <svg style={{width:size,height:size,verticalAlign:'middle',flexShrink:0}} viewBox="0 0 24 24" fill="none"><path d="M4 21L10 3l4 10 6-2" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><circle cx="18" cy="5" r="2" stroke={color} strokeWidth="1" opacity=".5"/><circle cx="14" cy="3" r="1" fill={color} opacity=".3"/><path d="M2 19l3 2M7 17l1 4" stroke={color} strokeWidth="1" strokeLinecap="round" opacity=".4"/></svg>;
+}
+function HeartIcon({size=18,color='currentColor'}) {
+  return <svg style={{width:size,height:size,verticalAlign:'middle',flexShrink:0}} viewBox="0 0 24 24" fill={color} opacity=".85"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>;
+}
+function MicIcon({size=18,color='currentColor'}) {
+  return <svg style={{width:size,height:size,verticalAlign:'middle',flexShrink:0}} viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="12" rx="3" stroke={color} strokeWidth="1.5"/><path d="M5 10a7 7 0 0014 0M12 18v3M9 21h6" stroke={color} strokeWidth="1.5" strokeLinecap="round"/></svg>;
+}
+function CopyIcon({size=16,color='currentColor'}) {
+  return <svg style={{width:size,height:size,verticalAlign:'middle',flexShrink:0}} viewBox="0 0 24 24" fill="none"><rect x="8" y="8" width="12" height="12" rx="2" stroke={color} strokeWidth="1.5"/><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2" stroke={color} strokeWidth="1.5"/></svg>;
+}
+function ShareIcon({size=16,color='currentColor'}) {
+  return <svg style={{width:size,height:size,verticalAlign:'middle',flexShrink:0}} viewBox="0 0 24 24" fill="none"><circle cx="18" cy="5" r="3" stroke={color} strokeWidth="1.5"/><circle cx="6" cy="12" r="3" stroke={color} strokeWidth="1.5"/><circle cx="18" cy="19" r="3" stroke={color} strokeWidth="1.5"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98" stroke={color} strokeWidth="1.5"/></svg>;
+}
+function EyeIcon({size=16,color='currentColor'}) {
+  return <svg style={{width:size,height:size,verticalAlign:'middle',flexShrink:0}} viewBox="0 0 24 24" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke={color} strokeWidth="1.5"/><circle cx="12" cy="12" r="3" stroke={color} strokeWidth="1.5"/></svg>;
+}
+function CalendarIcon({size=16,color='currentColor'}) {
+  return <svg style={{width:size,height:size,verticalAlign:'middle',flexShrink:0}} viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke={color} strokeWidth="1.5"/><path d="M16 2v4M8 2v4M3 10h18" stroke={color} strokeWidth="1.5" strokeLinecap="round"/></svg>;
+}
+function GiftBoxIcon({size=16,color='currentColor'}) {
+  return <svg style={{width:size,height:size,verticalAlign:'middle',flexShrink:0}} viewBox="0 0 24 24" fill="none"><rect x="3" y="8" width="18" height="13" rx="2" stroke={color} strokeWidth="1.5"/><path d="M12 8v13" stroke={color} strokeWidth="1.5"/><rect x="1" y="5" width="22" height="4" rx="1.5" stroke={color} strokeWidth="1.5"/><path d="M12 5c0 0-2-4-5-4s-3 3 0 4h5zM12 5c0 0 2-4 5-4s3 3 0 4h-5z" stroke={color} strokeWidth="1.2"/></svg>;
+}
+function WalletIcon({size=16,color='currentColor'}) {
+  return <svg style={{width:size,height:size,verticalAlign:'middle',flexShrink:0}} viewBox="0 0 24 24" fill="none"><rect x="2" y="6" width="20" height="14" rx="2" stroke={color} strokeWidth="1.5"/><path d="M2 10h20" stroke={color} strokeWidth="1.5"/><circle cx="17" cy="14" r="1.5" fill={color}/></svg>;
+}
+function ChartIcon({size=16,color='currentColor'}) {
+  return <svg style={{width:size,height:size,verticalAlign:'middle',flexShrink:0}} viewBox="0 0 24 24" fill="none"><rect x="3" y="12" width="4" height="9" rx="1" stroke={color} strokeWidth="1.5"/><rect x="10" y="7" width="4" height="14" rx="1" stroke={color} strokeWidth="1.5"/><rect x="17" y="3" width="4" height="18" rx="1" stroke={color} strokeWidth="1.5"/></svg>;
+}
+function SparkleIcon({size=18,color='currentColor'}) {
+  return <svg style={{width:size,height:size,verticalAlign:'middle',flexShrink:0}} viewBox="0 0 24 24" fill={color}><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16.8 5.6 21.2 8 14 2 9.2h7.6z" opacity=".8"/></svg>;
+}
+function MessageIcon({size=16,color='currentColor'}) {
+  return <svg style={{width:size,height:size,verticalAlign:'middle',flexShrink:0}} viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke={color} strokeWidth="1.5"/></svg>;
+}
+function UsersIcon({size=16,color='currentColor'}) {
+  return <svg style={{width:size,height:size,verticalAlign:'middle',flexShrink:0}} viewBox="0 0 24 24" fill="none"><circle cx="9" cy="7" r="4" stroke={color} strokeWidth="1.5"/><path d="M2 21c0-4 3-7 7-7s7 3 7 7" stroke={color} strokeWidth="1.5"/><circle cx="17" cy="8" r="3" stroke={color} strokeWidth="1.2" opacity=".5"/><path d="M18 14c3 .5 5 3 5 7" stroke={color} strokeWidth="1.2" opacity=".5"/></svg>;
+}
+function MailIcon({size=16,color='currentColor'}) {
+  return <svg style={{width:size,height:size,verticalAlign:'middle',flexShrink:0}} viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="2" stroke={color} strokeWidth="1.5"/><path d="M2 7l10 7 10-7" stroke={color} strokeWidth="1.5" strokeLinejoin="round"/></svg>;
+}
+function CheckIcon({size=16,color='currentColor'}) {
+  return <svg style={{width:size,height:size,verticalAlign:'middle',flexShrink:0}} viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+}
+
 function IgIcon({size=16,color='currentColor'}) {
   return <svg style={{width:size,height:size,verticalAlign:'middle',flexShrink:0}} viewBox="0 0 24 24" fill={color}><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>;
 }
@@ -100,7 +154,7 @@ function StatsPage() {
 
   return (
     <div style={{ padding: '20px' }}>
-      <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 20 }}>📊 {lang==='uz'?'Statistika':'Статистика'}</div>
+      <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 20 }}><ChartIcon size={20} color='var(--purple)'/> {lang==='uz'?'Statistika':'Статистика'}</div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
         {[
           { i: '🎨', v: stats?.templates || '...', l: lang==='uz'?'Shablonlar':'Шаблоны' },
@@ -155,7 +209,7 @@ function FaqPage() {
         </div>
       ))}
       <div style={{ padding:'20px', marginTop:16 }}>
-        <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>📞 {lang==='uz'?'Qo\'shimcha yordam':'Дополнительная помощь'}</div>
+        <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>{lang==='uz'?'Qo\'shimcha yordam':'Дополнительная помощь'}</div>
         <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
           <a href="https://t.me/ndd_admin" target="_blank" rel="noopener" style={{ display:'flex', alignItems:'center', gap:10, padding:12, background:'var(--white)', borderRadius:12, border:'1px solid var(--border)', textDecoration:'none', color:'var(--text)', fontSize:14, fontWeight:500 }}>
             👤 {lang==='uz'?'Admin bilan bog\'lanish':'Связаться с админом'}
@@ -239,10 +293,10 @@ function Home() {
   }, []);
 
   const cats = [
-    { key:'wedding', icon:'💍', label:lang==='uz'?'To\'y taklifnomasi':'Свадебное приглашение' },
-    { key:'birthday', icon:'🎂', label:lang==='uz'?'Tug\'ilgan kun taklifnomasi':'День рождения' },
-    { key:'event', icon:'🎉', label:lang==='uz'?'Tadbir taklifnomasi':'Мероприятие' },
-    { key:'love', icon:'❤️', label:lang==='uz'?'Sevgi xati':'Любовное письмо' },
+    { key:'wedding', icon:<RingIcon size={20} color='#996b3d'/>, label:lang==='uz'?'To\'y taklifnomasi':'Свадебное приглашение' },
+    { key:'birthday', icon:<CakeIcon size={20} color='#e85d04'/>, label:lang==='uz'?'Tug\'ilgan kun taklifnomasi':'День рождения' },
+    { key:'event', icon:<PartyIcon size={20} color='#2563eb'/>, label:lang==='uz'?'Tadbir taklifnomasi':'Мероприятие' },
+    { key:'love', icon:<HeartIcon size={20} color='#e74c6f'/>, label:lang==='uz'?'Sevgi xati':'Любовное письмо' },
   ];
 
   const cn = catNames(t);
@@ -260,7 +314,7 @@ function Home() {
       {/* Dropdown — "Bugun nima yasaymiz?" */}
       <div className="dropdown-wrap" style={{ marginTop: 16 }}>
         <button className={`dropdown-btn ${dropOpen ? 'open' : ''}`} onClick={() => setDropOpen(!dropOpen)}>
-          <span style={{ fontSize: 18 }}>✨</span>
+          <SparkleIcon size={18} color='#d4a574'/>
           <span>{lang === 'uz' ? 'Bugun nima yasaymiz?' : 'Что создадим сегодня?'}</span>
           <svg className="dropdown-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
         </button>
@@ -286,9 +340,9 @@ function Home() {
         </div>
         <div className="custom-banner-price">{lang === 'uz' ? '159 000 so\'mdan' : 'от 159 000 сум'}</div>
         <div className="feat-row">
-          <div className="feat-row-item"><span className="feat-row-icon">⚡</span> {lang==='uz'?'Tez':'Быстро'}</div>
-          <div className="feat-row-item"><span className="feat-row-icon">⭐</span> {lang==='uz'?'Professional':'Проф.'}</div>
-          <div className="feat-row-item"><span className="feat-row-icon">📱</span> {lang==='uz'?'Mobil':'Мобильный'}</div>
+          <div className="feat-row-item"><SparkleIcon size={16} color='#d4a574'/> {lang==='uz'?'Tez':'Быстро'}</div>
+          <div className="feat-row-item"><SparkleIcon size={16} color='#d4a574'/> {lang==='uz'?'Professional':'Проф.'}</div>
+          <div className="feat-row-item"><svg style={{width:16,height:16,verticalAlign:'middle'}} viewBox='0 0 24 24' fill='none'><rect x='5' y='2' width='14' height='20' rx='3' stroke='#d4a574' strokeWidth='1.5'/><circle cx='12' cy='18' r='1' fill='#d4a574'/></svg> {lang==='uz'?'Mobil':'Мобильный'}</div>
         </div>
         <button className="custom-banner-btn" onClick={() => window.open('https://t.me/ndd_admin')}>
           📩 {lang === 'uz' ? 'Buyurtma berish' : 'Заказать'}
@@ -327,8 +381,8 @@ function Home() {
                   <button className="tpl-h-btn primary" onClick={() => {
                     if (!user) navigate(`/auth?redirect=/create/${tp.category}/${tp.id}`);
                     else navigate(`/create/${tp.category}/${tp.id}`);
-                  }}>✦ {lang === 'uz' ? 'Yasash' : 'Создать'}</button>
-                  <button className="tpl-h-btn secondary" onClick={() => navigate(`/preview/${tp.id}`)}>👁 {lang === 'uz' ? 'Ko\'rish' : 'Смотреть'}</button>
+                  }}><SparkleIcon size={12} color='#fff'/> {lang === 'uz' ? 'Yasash' : 'Создать'}</button>
+                  <button className="tpl-h-btn secondary" onClick={() => navigate(`/preview/${tp.id}`)}><EyeIcon size={14}/> {lang === 'uz' ? 'Ko\'rish' : 'Смотреть'}</button>
                 </div>
               </div>
             </div>
@@ -384,7 +438,7 @@ function TplCard({ tp }) {
         <button className="tpl-btn make" onClick={() => {
           if (!user) navigate(`/auth?redirect=/create/${tp.category}/${tp.id}`);
           else navigate(`/create/${tp.category}/${tp.id}`);
-        }}>✨ {t.create}</button>
+        }}><SparkleIcon size={14} color='#fff'/> {t.create}</button>
       </div>
     </div>
   );
@@ -468,7 +522,7 @@ function PreviewPage() {
           padding:'10px 20px', borderRadius:10, border:'none',
           background:'var(--purple)', color:'#fff',
           fontFamily:'Inter,sans-serif', fontSize:13, fontWeight:600, cursor:'pointer',
-        }}>✨ {t.create}</button>
+        }}><SparkleIcon size={14} color='#fff'/> {t.create}</button>
       </div>
 
       {/* Real template preview */}
@@ -626,14 +680,28 @@ function SharePage() {
     }
   };
 
-  if (inv.is_free && inv.link) {
+  if ((inv.is_free || inv.is_paid) && inv.link) {
     return (
       <div className="share-card fu">
-        <div style={{fontSize:48,marginBottom:12}}>🎉</div>
+        <div style={{fontSize:48,marginBottom:12}}><SparkleIcon size={48} color='var(--purple)'/></div>
         <h3>{t.readyTitle}</h3>
         <div className="sub">{t.readySub}</div>
+        {!inv.is_free && inv.is_paid && (
+          <div style={{margin:'16px 0', padding:'16px 20px', background:'linear-gradient(135deg, #fef3c7, #fde68a)', borderRadius:14, border:'1px solid #f59e0b', textAlign:'left'}}>
+            <div style={{fontSize:14, fontWeight:700, color:'#92400e', marginBottom:6}}>🎉 {lang==='uz'?'To\'lov tasdiqlandi!':'Оплата подтверждена!'}</div>
+            <div style={{fontSize:12, color:'#78350f', lineHeight:1.5, marginBottom:10}}>
+              {lang==='uz'
+                ?'Premium taklifnomangiz tayyor! Endi o\'zingizga maxsus domen nom tanlashingiz mumkin. Masalan: dilnoza-javohir.taklifnomachi.online'
+                :'Ваше премиум приглашение готово! Вы можете выбрать персональный домен.'}
+            </div>
+            <button onClick={()=>window.open('https://t.me/ndd_admin')} style={{
+              padding:'10px 16px', borderRadius:10, border:'none', background:'#f59e0b', color:'#fff',
+              fontFamily:'Inter,sans-serif', fontSize:13, fontWeight:600, cursor:'pointer'
+            }}>{lang==='uz'?'Domen tanlash →':'Выбрать домен →'}</button>
+          </div>
+        )}
         <div className="link-box">{inv.link}</div>
-        <button className="copy-btn" onClick={()=>copy(inv.link,setCopied)}>{copied?`✅ ${t.copied}`:`📋 ${t.copyLink}`}</button>
+        <button className="copy-btn" onClick={()=>copy(inv.link,setCopied)}>{copied?<><CheckIcon size={14} color='#16a34a'/> {t.copied}</>:<><CopyIcon size={14}/> {t.copyLink}</>}</button>
         <div className="share-row">
           <button className="share-btn wa" onClick={()=>window.open(`https://wa.me/?text=${encodeURIComponent(inv.link)}`)}>💬 {t.shareWhatsapp}</button>
           <button className="share-btn tg" onClick={()=>window.open(`https://t.me/share/url?url=${encodeURIComponent(inv.link)}`)}><TgIcon color="#fff"/> {t.shareTelegram}</button>
@@ -670,7 +738,7 @@ function SharePage() {
       <div className="pay-text">{t.paymentSub}</div>
       <div style={{fontSize:12,color:'var(--text2)',marginBottom:6}}>{t.yourCode}:</div>
       <div className="pay-code">{inv.payment_code}</div>
-      <button className="copy-btn" style={{margin:'12px auto'}} onClick={()=>copy(inv.payment_code,setCC)}>{codeCopied?`✅ ${t.copied}`:`📋 ${t.copyCode}`}</button>
+      <button className="copy-btn" style={{margin:'12px auto'}} onClick={()=>copy(inv.payment_code,setCC)}>{codeCopied?<><CheckIcon size={14} color='#16a34a'/> {t.copied}</>:<><CopyIcon size={14}/> {t.copyCode}</>}</button>
       <div style={{marginTop:12}}><button className="bot-btn" onClick={()=>window.open(`https://t.me/Taklifnomachi_online_bot?start=pay_${inv.payment_code}`)}> {t.goToBot}</button></div>
       <div style={{borderTop:'1px solid var(--border)',marginTop:24,paddingTop:20}}>
         <label style={{fontSize:13,fontWeight:600}}>{t.customLink}</label>
@@ -685,7 +753,7 @@ function SharePage() {
         }}>{t.createLink}</button>
         {paidLink&&(<div style={{marginTop:12}}>
           <div className="link-box">{paidLink}</div>
-          <button className="copy-btn" style={{marginTop:8}} onClick={()=>copy(paidLink,setCopied)}>{copied?`✅ ${t.copied}`:`📋 ${t.copyLink}`}</button>
+          <button className="copy-btn" style={{marginTop:8}} onClick={()=>copy(paidLink,setCopied)}>{copied?<><CheckIcon size={14} color='#16a34a'/> {t.copied}</>:<><CopyIcon size={14}/> {t.copyLink}</>}</button>
           <div className="share-row" style={{marginTop:8}}>
             <button className="share-btn wa" onClick={()=>window.open(`https://wa.me/?text=${encodeURIComponent(paidLink)}`)}>💬 WhatsApp</button>
             <button className="share-btn tg" onClick={()=>window.open(`https://t.me/share/url?url=${encodeURIComponent(paidLink)}`)}><TgIcon color="#fff"/> Telegram</button>
@@ -767,7 +835,7 @@ function ProfilePage() {
   );
 
   const cn = catNames(t);
-  const catIcons = { wedding: '💍', birthday: '🎂', event: '🎤', love: '❤️' };
+  const catIcons = { wedding: <RingIcon size={16} color='#996b3d'/>, birthday: <CakeIcon size={16} color='#e85d04'/>, event: <MicIcon size={16} color='#2563eb'/>, love: <HeartIcon size={16} color='#e74c6f'/> };
 
   const getTitle = (inv) => {
     const d = typeof inv.data === 'string' ? JSON.parse(inv.data) : inv.data;
@@ -794,9 +862,9 @@ function ProfilePage() {
       {/* Mini stats */}
       <div style={{ display: 'flex', gap: 8, padding: '0 20px', marginBottom: 20 }}>
         {[
-          { v: total, l: lang === 'uz' ? 'Taklifnomalar' : 'Приглашения', i: '📨' },
-          { v: totalResp, l: lang === 'uz' ? 'Javoblar' : 'Ответы', i: '💬' },
-          { v: totalViews, l: lang === 'uz' ? 'Ko\'rishlar' : 'Просмотры', i: '👁' },
+          { v: total, l: lang === 'uz' ? 'Taklifnomalar' : 'Приглашения', i: <MailIcon size={20} color='var(--purple)'/> },
+          { v: totalResp, l: lang === 'uz' ? 'Javoblar' : 'Ответы', i: <MessageIcon size={20} color='var(--purple)'/> },
+          { v: totalViews, l: lang === 'uz' ? 'Ko\'rishlar' : 'Просмотры', i: <EyeIcon size={20} color='var(--purple)'/> },
         ].map((s, i) => (
           <div key={i} style={{ flex: 1, background: 'var(--white)', borderRadius: 12, padding: '14px 10px', textAlign: 'center', boxShadow: 'var(--shadow)' }}>
             <div style={{ fontSize: 20 }}>{s.i}</div>
@@ -828,13 +896,13 @@ function ProfilePage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
             <span style={{ fontSize: 16 }}>{catIcons[inv.category] || '📨'}</span>
             <span className="inv-item-type" style={{ margin: 0 }}>{cn[inv.category]}</span>
-            {!inv.is_free && !inv.is_paid && <span style={{ fontSize: 10, background: '#fef3c7', color: '#92400e', padding: '2px 6px', borderRadius: 4, fontWeight: 600 }}>💳 {lang === 'uz' ? 'To\'lov kutilmoqda' : 'Ожидает оплаты'}</span>}
+            {!inv.is_free && !inv.is_paid && <span style={{ fontSize: 10, background: '#fef3c7', color: '#92400e', padding: '2px 6px', borderRadius: 4, fontWeight: 600 }}><WalletIcon size={10} color='#92400e'/> {lang === 'uz' ? 'To\'lov kutilmoqda' : 'Ожидает оплаты'}</span>}
           </div>
           <div className="inv-item-title">{getTitle(inv)}</div>
           <div style={{ display: 'flex', gap: 12, marginTop: 6, fontSize: 11, color: 'var(--text3)' }}>
-            <span>📅 {new Date(inv.created_at).toLocaleDateString()}</span>
-            {inv.response_count > 0 && <span>💬 {inv.response_count}</span>}
-            {inv.views > 0 && <span>👁 {inv.views}</span>}
+            <span><CalendarIcon size={12}/> {new Date(inv.created_at).toLocaleDateString()}</span>
+            {inv.response_count > 0 && <span><MessageIcon size={12}/> {inv.response_count}</span>}
+            {inv.views > 0 && <span><EyeIcon size={12}/> {inv.views}</span>}
           </div>
         </div>
       ))}
@@ -900,7 +968,7 @@ function ProfileInvPage() {
       {/* RSVP Stats */}
       {resps.length > 0 && inv.category !== 'love' && (
         <div className="form-card" style={{ marginBottom: 16, padding: 16 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>📊 {lang === 'uz' ? 'RSVP statistika' : 'Статистика RSVP'}</div>
+          <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}><ChartIcon size={16}/> {lang === 'uz' ? 'RSVP statistika' : 'Статистика RSVP'}</div>
           <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
             {[
               { v: attending, l: lang === 'uz' ? 'Keladi' : 'Придут', c: 'var(--green)', bg: '#ecfdf5' },
@@ -915,7 +983,7 @@ function ProfileInvPage() {
           </div>
           {totalGuests > 0 && (
             <div style={{ background: 'var(--bg)', borderRadius: 8, padding: '10px 12px', fontSize: 13, textAlign: 'center' }}>
-              👥 {lang === 'uz' ? 'Jami mehmonlar' : 'Всего гостей'}: <b style={{ color: 'var(--purple)' }}>{totalGuests}</b>
+              <UsersIcon size={14}/> {lang === 'uz' ? 'Jami mehmonlar' : 'Всего гостей'}: <b style={{ color: 'var(--purple)' }}>{totalGuests}</b>
             </div>
           )}
           {/* Mini bar chart */}
@@ -930,7 +998,7 @@ function ProfileInvPage() {
       )}
 
       {/* Responses */}
-      <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 12 }}>💬 {t.responses} ({resps.length})</div>
+      <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 12 }}><MessageIcon size={16}/> {t.responses} ({resps.length})</div>
       {resps.length === 0 ? (
         <div className="empty-state" style={{ padding: '30px 0' }}>
           <div className="empty-state-icon">💬</div>
