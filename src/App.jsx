@@ -359,7 +359,16 @@ function Home() {
       {loading ? (
         <div style={{ padding: '0 20px' }}>{[1, 2].map(i => <div key={i} className="skel-card" style={{ height: 160, marginBottom: 12 }} />)}</div>
       ) : templates.length > 0 ? (
-        templates.slice(0, 4).map(tp => {
+        // Tavsiya etiladi: 1 bepul to'y + 2 pullik to'y + 1 sevgi xati
+        (() => {
+          const featured = ['w1', 'w2', 'w5', 'l1'];
+          const sorted = featured
+            .map(id => templates.find(t => t.id === id))
+            .filter(Boolean);
+          // Agar featured topilmasa, oddiy 4 ta ko'rsatish
+          const show = sorted.length >= 3 ? sorted : templates.slice(0, 4);
+          return show;
+        })().map(tp => {
           const s = getSampleDisplay(tp);
           const name = lang === 'uz' ? tp.name_uz : tp.name_ru;
           const desc = lang === 'uz' ? (tp.tag_uz || '') : (tp.tag_ru || '');
