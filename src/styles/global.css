@@ -629,3 +629,262 @@ textarea.fi { min-height: 80px; resize: vertical; }
   text-decoration: none; font-size: 18px; transition: all .2s;
 }
 .social-footer-links a:hover { border-color: #d4a574; background: #faf5ee; }
+
+/* ============ PAYMENT — YANGI TO'LOV UI ============ */
+
+/* Bank karta */
+.pay-bank-card {
+  background: linear-gradient(135deg, #1a2f4e 0%, #2d5282 50%, #1a365d 100%);
+  border-radius: 18px;
+  padding: 22px 20px 18px;
+  margin: 16px 0 10px;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(29, 78, 130, 0.35);
+  min-height: 130px;
+}
+.pay-bank-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.pay-bank-label {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  opacity: 0.65;
+  font-weight: 600;
+}
+.pay-bank-type {
+  font-size: 12px;
+  font-weight: 800;
+  background: rgba(255,255,255,0.15);
+  padding: 4px 10px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+}
+.pay-bank-number {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  font-family: 'Courier New', monospace;
+  margin-bottom: 14px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+.pay-bank-owner {
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.85;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.pay-bank-shine {
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 130px; height: 130px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  pointer-events: none;
+}
+.pay-bank-card::before {
+  content: '';
+  position: absolute;
+  bottom: -30px; left: -20px;
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+}
+
+/* Nusxalash tugmasi */
+.pay-copy-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  padding: 13px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background: var(--white);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text1);
+  transition: all .15s;
+  margin-bottom: 16px;
+}
+.pay-copy-btn:active { transform: scale(0.98); background: var(--bg); }
+
+/* Qadamlar */
+.pay-steps {
+  background: var(--bg);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pay-step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.pay-step-num {
+  min-width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--purple);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.pay-step-text {
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.5;
+}
+
+/* Screenshot yuklash */
+.pay-upload-wrap { margin-bottom: 16px; }
+
+.pay-upload-zone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2.5px dashed var(--border);
+  border-radius: 16px;
+  min-height: 140px;
+  cursor: pointer;
+  transition: all .2s;
+  background: var(--bg);
+  overflow: hidden;
+}
+.pay-upload-zone.uploaded {
+  border-color: #22c55e;
+  border-style: solid;
+  background: #f0fdf4;
+}
+.pay-upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 20px;
+  text-align: center;
+}
+.pay-upload-icon { font-size: 36px; }
+.pay-upload-hint { font-size: 14px; font-weight: 600; color: var(--text2); }
+.pay-upload-sub { font-size: 11px; color: var(--text3); }
+
+.pay-upload-preview {
+  width: 100%;
+  position: relative;
+}
+.pay-upload-preview img {
+  width: 100%;
+  max-height: 220px;
+  object-fit: contain;
+  border-radius: 12px;
+  display: block;
+}
+.pay-upload-change {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px;
+  text-align: center;
+  border-radius: 0 0 12px 12px;
+}
+
+/* Admin havola */
+.pay-admin-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding: 12px 14px;
+  background: #eff6ff;
+  border-radius: 12px;
+  border: 1px solid #bfdbfe;
+}
+.pay-admin-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #2563eb;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  font-family: 'Inter', sans-serif;
+}
+.pay-admin-link:hover { text-decoration: underline; }
+
+/* Yuklash animatsiyasi */
+@keyframes payUploading {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.pay-uploading { animation: payUploading 1s infinite; }
+
+/* Muvaffaqiyat overlay */
+@keyframes successPop {
+  0% { transform: scale(0.5); opacity: 0; }
+  70% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes successFade {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  75% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.pay-success-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: successFade 3s forwards;
+}
+.pay-success-box {
+  background: #fff;
+  border-radius: 24px;
+  padding: 36px 40px;
+  text-align: center;
+  animation: successPop .4s cubic-bezier(.34,1.56,.64,1) forwards;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+.pay-success-check {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #fff;
+  font-size: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+.pay-success-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #16a34a;
+  margin-bottom: 6px;
+}
+.pay-success-sub {
+  font-size: 13px;
+  color: var(--text2);
+}
