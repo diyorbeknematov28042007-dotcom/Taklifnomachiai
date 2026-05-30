@@ -66,6 +66,10 @@ export async function sendResponse(invitationId, rsvp, guestCount, message, send
 export async function getResponses(invitationId) { return request('/responses/' + invitationId); }
 
 // Payments
-export async function verifyPayment(code, telegramId) {
-  return request('/payments/verify', { method:'POST', body:JSON.stringify({code,telegramId}) });
+export async function getPaymentCard() {
+  return request('/payments/card');
+}
+
+export async function getPaymentStatus(uid) {
+  return request('/payments/status/' + uid);
 }
