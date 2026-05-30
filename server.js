@@ -3,13 +3,16 @@ import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { neon, neonConfig } from '@neondatabase/serverless';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import multer from 'multer';
 
 // Neon serverless optimizatsiya — CPU hours tejash
-// fetchConnectionCache: so'rovlar orasida connection qayta ishlatiladi
-// Render free tier uchun muhim — cold start dan keyin ham tez ulashadi
 neonConfig.fetchConnectionCache = true;
-import dotenv from 'dotenv';
-import multer from 'multer';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
@@ -55,7 +58,13 @@ app.use((req, res, next) => {
 });
 
 app.use(cors({ origin: IS_PROD ? SITE_URL : '*' }));
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({ limit: '10mb' }));
+
+// Static files (React build)
+app.use(express.static(path.join(__dirname, 'dist'), {
+  maxAge: IS_PROD ? '7d' : 0,
+  etag: true,
+}));
 
 // ==================== RATE LIMITING (in-memory) ====================
 const rateLimits = new Map();
@@ -516,17 +525,18 @@ app.get('/v/:slug', async (req, res) => {
       const ogUrl = SITE_URL + '/v/' + req.params.slug;
       const ogImg = SITE_URL + '/og-image.svg';
 
-      // Vercel dagi index.html ga redirect + OG meta inject
-      // Bot/crawler uchun to'liq HTML, browser uchun Vercel ga yo'naltirish
       const ua = req.headers['user-agent'] || '';
       const isBot = /bot|crawler|spider|facebook|twitter|telegram|whatsapp|linkedin|vk|discord|slack/i.test(ua);
 
       if (isBot) {
-        // Faqat botlar uchun OG meta bilan minimal HTML
-        return res.send(`<!DOCTYPE html>
-<html lang="uz">
-<head>
-  <meta charset="UTF-8">
+        // Botlar uchun OG meta inject qilingan index.html
+        const fs = await import('fs');
+        const indexPath = path.join(__dirname, 'dist', 'index.html');
+        let html = '';
+        try { html = fs.readFileSync(indexPath, 'utf8'); } catch {}
+
+        if (html) {
+          const ogTags = `
   <title>${emoji} ${safeTitle} | Taklifnomachi</title>
   <meta name="description" content="${safeDesc}">
   <meta property="og:title" content="${emoji} ${safeTitle}">
@@ -540,16 +550,22 @@ app.get('/v/:slug', async (req, res) => {
   <meta name="twitter:title" content="${emoji} ${safeTitle}">
   <meta name="twitter:description" content="${safeDesc}">
   <meta name="twitter:image" content="${ogImg}">
-  <meta name="theme-color" content="${color}">
-</head>
-<body><p>${safeDesc}</p></body>
-</html>`);
+  <meta name="theme-color" content="${color}">`;
+          html = html.replace(/<title>[^<]*<\/title>/, '');
+          html = html.replace('</head>', ogTags + '\n</head>');
+          return res.send(html);
+        }
       }
     }
   } catch (e) { logError('ogTags', e); }
 
-  // Browser — Vercel ga yo'naltirish
-  res.redirect(301, SITE_URL + '/v/' + req.params.slug);
+  // Browser — SPA ga
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
+// ==================== SPA FALLBACK ====================
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 // ==================== START ====================
