@@ -2,15 +2,16 @@ import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { neon } from '@neondatabase/serverless';
+import { neon, neonConfig } from '@neondatabase/serverless';
+
+// Neon serverless optimizatsiya — CPU hours tejash
+// fetchConnectionCache: so'rovlar orasida connection qayta ishlatiladi
+// Render free tier uchun muhim — cold start dan keyin ham tez ulashadi
+neonConfig.fetchConnectionCache = true;
 import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import multer from 'multer';
 
 dotenv.config();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // ==================== CONFIG & VALIDATION ====================
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -103,12 +104,6 @@ app.get('/api/health', async (req, res) => {
     res.status(503).json({ status: 'error', db: 'disconnected', error: e.message });
   }
 });
-
-// Static files with caching
-app.use(express.static(path.join(__dirname, 'dist'), {
-  maxAge: IS_PROD ? '7d' : 0,
-  etag: true,
-}));
 
 // ==================== HELPERS ====================
 function generateUID() { return String(Math.floor(100000 + Math.random() * 900000)); }
@@ -515,56 +510,65 @@ app.get('/v/:slug', async (req, res) => {
         emoji = '❤️';
       }
 
-      // Sanitize for HTML attributes
       const safeTitle = title.replace(/"/g, '&quot;').replace(/</g, '&lt;');
       const safeDesc = desc.replace(/"/g, '&quot;').replace(/</g, '&lt;');
       const color = inv.accent_color || '#7c3aed';
       const ogUrl = SITE_URL + '/v/' + req.params.slug;
       const ogImg = SITE_URL + '/og-image.svg';
 
-      // Read dist/index.html and inject OG tags
-      const fs = await import('fs');
-      const indexPath = path.join(__dirname, 'dist', 'index.html');
-      let html = '';
-      try { html = fs.readFileSync(indexPath, 'utf8'); } catch { }
+      // Vercel dagi index.html ga redirect + OG meta inject
+      // Bot/crawler uchun to'liq HTML, browser uchun Vercel ga yo'naltirish
+      const ua = req.headers['user-agent'] || '';
+      const isBot = /bot|crawler|spider|facebook|twitter|telegram|whatsapp|linkedin|vk|discord|slack/i.test(ua);
 
-      if (html) {
-        // Inject OG tags before </head>
-        const ogTags = `
-    <title>${safeTitle} | Taklifnomachi</title>
-    <meta name="description" content="${safeDesc}">
-    <meta property="og:title" content="${emoji} ${safeTitle}">
-    <meta property="og:description" content="${safeDesc}">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="${ogUrl}">
-    <meta property="og:image" content="${ogImg}">
-    <meta property="og:site_name" content="Taklifnomachi.online">
-    <meta property="og:locale" content="uz_UZ">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="${emoji} ${safeTitle}">
-    <meta name="twitter:description" content="${safeDesc}">
-    <meta name="twitter:image" content="${ogImg}">
-    <meta name="theme-color" content="${color}">`;
-
-        // Remove existing title and add OG
-        html = html.replace(/<title>[^<]*<\/title>/, '');
-        html = html.replace('</head>', ogTags + '\n</head>');
-        return res.send(html);
+      if (isBot) {
+        // Faqat botlar uchun OG meta bilan minimal HTML
+        return res.send(`<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <title>${emoji} ${safeTitle} | Taklifnomachi</title>
+  <meta name="description" content="${safeDesc}">
+  <meta property="og:title" content="${emoji} ${safeTitle}">
+  <meta property="og:description" content="${safeDesc}">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="${ogUrl}">
+  <meta property="og:image" content="${ogImg}">
+  <meta property="og:site_name" content="Taklifnomachi.online">
+  <meta property="og:locale" content="uz_UZ">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${emoji} ${safeTitle}">
+  <meta name="twitter:description" content="${safeDesc}">
+  <meta name="twitter:image" content="${ogImg}">
+  <meta name="theme-color" content="${color}">
+</head>
+<body><p>${safeDesc}</p></body>
+</html>`);
       }
     }
   } catch (e) { logError('ogTags', e); }
 
-  // Fallback to SPA
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-});
-
-// ==================== SPA FALLBACK ====================
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  // Browser — Vercel ga yo'naltirish
+  res.redirect(301, SITE_URL + '/v/' + req.params.slug);
 });
 
 // ==================== START ====================
 app.listen(PORT, () => {
   console.log(`🚀 Taklifnomachi server: http://localhost:${PORT}`);
   console.log(`   ENV: ${NODE_ENV} | URL: ${SITE_URL}`);
+
+  // Neon keep-alive: har 4 daqiqada yengil ping
+  // Sabab: Render 15 daqiqada uxlab qoladi → Neon compute o'chadi
+  // → Qayta uyg'onganda CPU spike → 191 soat tez tugaydi
+  // Bu ping Render ni emas, Neon ni jonli ushlab turadi
+  if (IS_PROD) {
+    setInterval(async () => {
+      try {
+        await sql`SELECT 1`;
+        console.log('[keep-alive] Neon ping OK');
+      } catch (e) {
+        console.error('[keep-alive] Neon ping xato:', e.message);
+      }
+    }, 4 * 60 * 1000); // 4 daqiqa
+  }
 });
