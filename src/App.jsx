@@ -670,108 +670,218 @@ function QRCode({ text, size = 160 }) {
 // ==================== SHARE ====================
 function SharePage() {
   const { uid } = useParams();
-  const { t, lang } = useApp();
+  const { t, lang, navigate } = useApp();
   const [inv, setInv] = useState(null);
   const [copied, setCopied] = useState(false);
-  const [codeCopied, setCC] = useState(false);
+  const [cardCopied, setCardCopied] = useState(false);
   const [slug, setSlug] = useState('');
   const [paidLink, setPL] = useState('');
   const [showQR, setShowQR] = useState(false);
+  const [card, setCard] = useState(null);
+  const [screenshot, setScreenshot] = useState(null);
+  const [screenshotPreview, setScreenshotPreview] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [payDone, setPayDone] = useState(false);
+  const [payErr, setPayErr] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
 
-  useEffect(() => { api.getInvByUid(uid).then(d=>setInv(d.invitation)).catch(()=>{}); }, [uid]);
+  useEffect(() => {
+    api.getInvByUid(uid).then(d => {
+      const invitation = d.invitation;
+      setInv(invitation);
+      if (!invitation.is_free && !invitation.is_paid) {
+        fetch('/api/payments/card').then(r=>r.json()).then(c=>{if(c.card_number)setCard(c);}).catch(()=>{});
+      }
+    }).catch(() => {});
+  }, [uid]);
+
   if (!inv) return <div className="loading">{t.loading}</div>;
 
   const copy = (txt, fn) => { navigator.clipboard?.writeText(txt).then(()=>{fn(true);setTimeout(()=>fn(false),2000)}); };
+  const nativeShare = (link) => { if(navigator.share) navigator.share({title:lang==="uz"?"Taklifnoma":"Приглашение",url:link}).catch(()=>{}); };
 
-  const nativeShare = (link) => {
-    if (navigator.share) {
-      navigator.share({ title: lang==='uz'?'Taklifnoma':'Приглашение', text: lang==='uz'?'Sizni taklifnomaga taklif qilamiz!':'Приглашаем вас!', url: link }).catch(()=>{});
-    }
+  const onFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setScreenshot(file); setPayErr('');
+    const reader = new FileReader();
+    reader.onload = (ev) => setScreenshotPreview(ev.target.result);
+    reader.readAsDataURL(file);
   };
 
+  const uploadScreenshot = async () => {
+    if (!screenshot) return;
+    setUploading(true); setPayErr('');
+    try {
+      const formData = new FormData();
+      formData.append('screenshot', screenshot);
+      formData.append('invitation_uid', inv.uid);
+      const token = localStorage.getItem('tkn_token');
+      const r = await fetch('/api/payments/upload', {
+        method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: formData,
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Xatolik');
+      setShowSuccess(true); setPayDone(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+      api.getInvByUid(uid).then(d => setInv(d.invitation)).catch(() => {});
+    } catch (e) { setPayErr(e.message); }
+    finally { setUploading(false); }
+  };
+
+  // Bepul taklifnoma
   if (inv.is_free && inv.link) {
     return (
       <div className="share-card fu">
-        <div style={{fontSize:48,marginBottom:12}}><SparkleIcon size={48} color='var(--purple)'/></div>
+        <div style={{fontSize:48,marginBottom:12}}><SparkleIcon size={48} color="var(--purple)"/></div>
         <h3>{t.readyTitle}</h3>
         <div className="sub">{t.readySub}</div>
-        {!inv.is_free && inv.is_paid && (
-          <div style={{margin:'16px 0', padding:'16px 20px', background:'linear-gradient(135deg, #fef3c7, #fde68a)', borderRadius:14, border:'1px solid #f59e0b', textAlign:'left'}}>
-            <div style={{fontSize:14, fontWeight:700, color:'#92400e', marginBottom:6}}>🎉 {lang==='uz'?'To\'lov tasdiqlandi!':'Оплата подтверждена!'}</div>
-            <div style={{fontSize:12, color:'#78350f', lineHeight:1.5, marginBottom:10}}>
-              {lang==='uz'
-                ?'Premium taklifnomangiz tayyor! Endi o\'zingizga maxsus domen nom tanlashingiz mumkin. Masalan: dilnoza-javohir.taklifnomachi.online'
-                :'Ваше премиум приглашение готово! Вы можете выбрать персональный домен.'}
-            </div>
-            <button onClick={()=>window.open('https://t.me/ndd_admin')} style={{
-              padding:'10px 16px', borderRadius:10, border:'none', background:'#f59e0b', color:'#fff',
-              fontFamily:'Inter,sans-serif', fontSize:13, fontWeight:600, cursor:'pointer'
-            }}>{lang==='uz'?'Domen tanlash →':'Выбрать домен →'}</button>
-          </div>
-        )}
         <div className="link-box">{inv.link}</div>
-        <button className="copy-btn" onClick={()=>copy(inv.link,setCopied)}>{copied?<><CheckIcon size={14} color='#16a34a'/> {t.copied}</>:<><CopyIcon size={14}/> {t.copyLink}</>}</button>
+        <button className="copy-btn" onClick={()=>copy(inv.link,setCopied)}>
+          {copied?<><CheckIcon size={14} color="#16a34a"/> {t.copied}</>:<><CopyIcon size={14}/> {t.copyLink}</>}
+        </button>
         <div className="share-row">
           <button className="share-btn wa" onClick={()=>window.open(`https://wa.me/?text=${encodeURIComponent(inv.link)}`)}>💬 {t.shareWhatsapp}</button>
           <button className="share-btn tg" onClick={()=>window.open(`https://t.me/share/url?url=${encodeURIComponent(inv.link)}`)}><TgIcon color="#fff"/> {t.shareTelegram}</button>
         </div>
-        {navigator.share && (
-          <button onClick={()=>nativeShare(inv.link)} style={{ width:'100%', padding:14, borderRadius:12, border:'1.5px solid var(--border)', background:'var(--white)', fontFamily:'Inter,sans-serif', fontSize:14, fontWeight:600, cursor:'pointer', marginTop:8, color:'var(--text1)' }}>
-            📤 {lang==='uz'?'Boshqa ilovalar orqali ulashish':'Поделиться через другие приложения'}
+        {navigator.share&&<button onClick={()=>nativeShare(inv.link)} style={{width:"100%",padding:14,borderRadius:12,border:"1.5px solid var(--border)",background:"var(--white)",fontFamily:"Inter,sans-serif",fontSize:14,fontWeight:600,cursor:"pointer",marginTop:8,color:"var(--text1)"}}>📤 {lang==="uz"?"Boshqa ilovalar orqali":"Через другие приложения"}</button>}
+        <div style={{marginTop:20,textAlign:"center"}}>
+          <button onClick={()=>setShowQR(!showQR)} style={{background:"none",border:"none",color:"var(--purple)",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}}>
+            {showQR?"🔼 QR yashirish":"🔽 QR kod ko'rsatish"}
           </button>
-        )}
-        <div style={{marginTop:20, textAlign:'center'}}>
-          <button onClick={()=>setShowQR(!showQR)} style={{ background:'none', border:'none', color:'var(--purple)', fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'Inter,sans-serif' }}>
-            {showQR?'🔼 QR yashirish':'🔽 QR kod ko\'rsatish'}
-          </button>
-          {showQR && (
-            <div style={{marginTop:12, display:'flex', flexDirection:'column', alignItems:'center', gap:8}}>
-              <QRCode text={inv.link} />
-              <div style={{fontSize:11, color:'var(--text3)'}}>QR kodni skanerlang</div>
-            </div>
-          )}
+          {showQR&&<div style={{marginTop:12,display:"flex",flexDirection:"column",alignItems:"center",gap:8}}><QRCode text={inv.link}/><div style={{fontSize:11,color:"var(--text3)"}}>QR kodni skanerlang</div></div>}
         </div>
         <div style={{marginTop:16}}>
-          <button onClick={()=>window.open(inv.link,'_blank')} style={{ width:'100%', padding:12, borderRadius:10, border:'1px solid var(--border)', background:'var(--bg)', fontFamily:'Inter,sans-serif', fontSize:13, cursor:'pointer', color:'var(--text2)' }}>
-            👁 {lang==='uz'?'Taklifnomani ko\'rish':'Просмотреть приглашение'}
+          <button onClick={()=>window.open(inv.link,"_blank")} style={{width:"100%",padding:12,borderRadius:10,border:"1px solid var(--border)",background:"var(--bg)",fontFamily:"Inter,sans-serif",fontSize:13,cursor:"pointer",color:"var(--text2)"}}>
+            👁 {lang==="uz"?"Taklifnomani ko'rish":"Просмотреть приглашение"}
           </button>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="pay-card fu">
-      <h3>🌟 {t.paymentTitle}</h3>
-      <div className="pay-price">{inv.price?.toLocaleString()} {t.price}</div>
-      <div className="pay-text">{t.paymentSub}</div>
-      <div style={{fontSize:12,color:'var(--text2)',marginBottom:6}}>{t.yourCode}:</div>
-      <div className="pay-code">{inv.payment_code}</div>
-      <button className="copy-btn" style={{margin:'12px auto'}} onClick={()=>copy(inv.payment_code,setCC)}>{codeCopied?<><CheckIcon size={14} color='#16a34a'/> {t.copied}</>:<><CopyIcon size={14}/> {t.copyCode}</>}</button>
-      <div style={{marginTop:12}}><button className="bot-btn" onClick={()=>window.open(`https://t.me/Taklifnomachi_online_bot?start=pay_${inv.payment_code}`)}> {t.goToBot}</button></div>
-      <div style={{borderTop:'1px solid var(--border)',marginTop:24,paddingTop:20}}>
-        <label style={{fontSize:13,fontWeight:600}}>{t.customLink}</label>
-        <div style={{fontSize:11,color:'var(--text2)',margin:'6px 0 8px'}}>{t.customLinkHint}</div>
-        <div className="slug-row">
-          <div className="slug-pre">{window.location.host}/v/</div>
-          <input className="slug-inp" value={slug} onChange={e=>setSlug(e.target.value.replace(/[^a-zA-Z0-9-]/g,'').slice(0,30))} placeholder="my-event"/>
-        </div>
-        <div style={{fontSize:11,color:'var(--text3)',margin:'6px 0 12px'}}>{t.afterPayment}</div>
-        <button className="main-btn" disabled={slug.length<3} onClick={async()=>{
-          try { const d=await api.setSlug(inv.id,slug); setPL(d.link); } catch(e){alert(e.message)}
-        }}>{t.createLink}</button>
-        {paidLink&&(<div style={{marginTop:12}}>
-          <div className="link-box">{paidLink}</div>
-          <button className="copy-btn" style={{marginTop:8}} onClick={()=>copy(paidLink,setCopied)}>{copied?<><CheckIcon size={14} color='#16a34a'/> {t.copied}</>:<><CopyIcon size={14}/> {t.copyLink}</>}</button>
-          <div className="share-row" style={{marginTop:8}}>
-            <button className="share-btn wa" onClick={()=>window.open(`https://wa.me/?text=${encodeURIComponent(paidLink)}`)}>💬 WhatsApp</button>
-            <button className="share-btn tg" onClick={()=>window.open(`https://t.me/share/url?url=${encodeURIComponent(paidLink)}`)}><TgIcon color="#fff"/> Telegram</button>
+  // To'lov tasdiqlangan — slug tanlash
+  if (inv.is_paid || payDone) {
+    return (
+      <div className="pay-card fu" style={{borderColor:"#bbf7d0"}}>
+        {showSuccess&&(
+          <div className="pay-success-overlay">
+            <div className="pay-success-box">
+              <div className="pay-success-check">✓</div>
+              <div className="pay-success-title">{lang==="uz"?"To'lov tasdiqlandi!":"Оплата подтверждена!"}</div>
+              <div className="pay-success-sub">{lang==="uz"?"Endi linkingizni yarating":"Теперь создайте вашу ссылку"}</div>
+            </div>
           </div>
-        </div>)}
+        )}
+        <div style={{textAlign:"center",marginBottom:24}}>
+          <div style={{width:64,height:64,borderRadius:"50%",background:"linear-gradient(135deg,#22c55e,#16a34a)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 12px",fontSize:28,color:"#fff"}}>✓</div>
+          <h3 style={{color:"#16a34a",fontSize:18,margin:"0 0 6px"}}>{lang==="uz"?"To'lov tasdiqlandi!":"Оплата подтверждена!"}</h3>
+          <div style={{fontSize:13,color:"var(--text2)"}}>{lang==="uz"?"Endi maxsus link nomini tanlang":"Выберите персональное имя ссылки"}</div>
+        </div>
+        <div style={{borderTop:"1px solid var(--border)",paddingTop:20}}>
+          <label style={{fontSize:13,fontWeight:700,display:"block",marginBottom:6}}>{t.customLink}</label>
+          <div style={{fontSize:11,color:"var(--text2)",marginBottom:10}}>{t.customLinkHint}</div>
+          <div className="slug-row">
+            <div className="slug-pre">{window.location.host}/v/</div>
+            <input className="slug-inp" value={slug} onChange={e=>setSlug(e.target.value.replace(/[^a-zA-Z0-9-]/g,"").slice(0,30))} placeholder="dilnoza-javohir"/>
+          </div>
+          <button className="main-btn" style={{marginTop:12}} disabled={slug.length<3} onClick={async()=>{
+            try{const d=await api.setSlug(inv.id,slug);setPL(d.link);}catch(e){alert(e.message);}
+          }}>{t.createLink}</button>
+          {paidLink&&<div style={{marginTop:16}}>
+            <div className="link-box">{paidLink}</div>
+            <button className="copy-btn" style={{marginTop:8}} onClick={()=>copy(paidLink,setCopied)}>
+              {copied?<><CheckIcon size={14} color="#16a34a"/> {t.copied}</>:<><CopyIcon size={14}/> {t.copyLink}</>}
+            </button>
+            <div className="share-row" style={{marginTop:8}}>
+              <button className="share-btn wa" onClick={()=>window.open(`https://wa.me/?text=${encodeURIComponent(paidLink)}`)}>💬 WhatsApp</button>
+              <button className="share-btn tg" onClick={()=>window.open(`https://t.me/share/url?url=${encodeURIComponent(paidLink)}`)}><TgIcon color="#fff"/> Telegram</button>
+            </div>
+          </div>}
+        </div>
+      </div>
+    );
+  }
+
+  // Premium — to'lov sahifasi
+  return (
+    <div className="pay-card fu" style={{border:"none",padding:"20px 16px"}}>
+      <div style={{textAlign:"center",marginBottom:20}}>
+        <div style={{fontSize:13,color:"var(--text2)",marginBottom:4}}>{lang==="uz"?"Premium shablon":"Премиум шаблон"}</div>
+        <div style={{fontSize:28,fontWeight:800,color:"var(--text1)"}}>{inv.price?.toLocaleString()} <span style={{fontSize:16,fontWeight:500}}>so'm</span></div>
+      </div>
+
+      <div className="pay-bank-card">
+        <div className="pay-bank-top">
+          <div className="pay-bank-label">{lang==="uz"?"TO'LOV KARTASI":"КАРТА ДЛЯ ОПЛАТЫ"}</div>
+          {card&&<div className="pay-bank-type">{card.card_type}</div>}
+        </div>
+        {card ? <>
+          <div className="pay-bank-number">{card.card_number.replace(/\s/g,"").replace(/(\d{4})/g,"$1 ").trim()}</div>
+          <div className="pay-bank-owner">{card.card_owner}</div>
+        </> : <div style={{fontSize:13,opacity:.7,padding:"16px 0",textAlign:"center"}}>{lang==="uz"?"Yuklanmoqda...":"Загрузка..."}</div>}
+        <div className="pay-bank-shine"/>
+      </div>
+
+      {card&&(
+        <button className="pay-copy-btn" onClick={()=>copy(card.card_number.replace(/\s/g,""),setCardCopied)}>
+          {cardCopied?<><CheckIcon size={15} color="#16a34a"/> {lang==="uz"?"Nusxalandi!":"Скопировано!"}</> :<><CopyIcon size={15}/> {lang==="uz"?"Karta raqamini nusxalash":"Скопировать номер карты"}</>}
+        </button>
+      )}
+
+      <div className="pay-steps">
+        {(lang==="uz"?[
+          {n:1,text:`${inv.price?.toLocaleString()} so'm yuqoridagi kartaga o'tkazing`},
+          {n:2,text:"To'lov screenshotini oling"},
+          {n:3,text:"Quyida screenshotni yuklang"},
+        ]:[
+          {n:1,text:`Переведите ${inv.price?.toLocaleString()} сум на карту выше`},
+          {n:2,text:"Сделайте скриншот оплаты"},
+          {n:3,text:"Загрузите скриншот ниже"},
+        ]).map(s=>(
+          <div key={s.n} className="pay-step-item">
+            <div className="pay-step-num">{s.n}</div>
+            <div className="pay-step-text">{s.text}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="pay-upload-wrap">
+        <div style={{fontSize:13,fontWeight:700,marginBottom:10}}>{lang==="uz"?"📸 To'lov screenshotini yuklang":"📸 Загрузите скриншот оплаты"}</div>
+        <label className={`pay-upload-zone${screenshot?" uploaded":""}`}>
+          <input type="file" accept="image/*" style={{display:"none"}} onChange={onFileChange}/>
+          {screenshotPreview ? (
+            <div className="pay-upload-preview">
+              <img src={screenshotPreview} alt="preview"/>
+              <div className="pay-upload-change">{lang==="uz"?"Boshqa rasm tanlash":"Заменить фото"}</div>
+            </div>
+          ) : (
+            <div className="pay-upload-placeholder">
+              <div className="pay-upload-icon">📎</div>
+              <div className="pay-upload-hint">{lang==="uz"?"Rasmni bosib tanlang":"Нажмите для выбора фото"}</div>
+              <div className="pay-upload-sub">JPG, PNG • max 5MB</div>
+            </div>
+          )}
+        </label>
+      </div>
+
+      {payErr&&<div style={{background:"#fef2f2",border:"1px solid #fecaca",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#dc2626",marginBottom:12}}>⚠️ {payErr}</div>}
+
+      <button className="main-btn" style={{fontSize:15,padding:"16px"}} disabled={!screenshot||uploading} onClick={uploadScreenshot}>
+        {uploading?<span className="pay-uploading">{lang==="uz"?"Yuklanmoqda...":"Загрузка..."}</span>:(lang==="uz"?"✅ To'lovni tasdiqlash":"✅ Подтвердить оплату")}
+      </button>
+
+      <div className="pay-admin-row">
+        <span style={{fontSize:12,color:"var(--text2)"}}>{lang==="uz"?"Savol bor?":"Есть вопросы?"}</span>
+        <a href="https://t.me/ndd_admin" target="_blank" rel="noopener noreferrer" className="pay-admin-link">
+          <span>{lang==="uz"?"Admin bilan bog'lanish":"Написать администратору"}</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        </a>
       </div>
     </div>
   );
 }
+
 
 // ==================== VIEW INVITATION (PUBLIC LINK) ====================
 function ViewInvPage() {
@@ -1038,39 +1148,68 @@ function AdminPage() {
   const [tpls, setTpls] = useState([]);
   const [users, setUsers] = useState([]);
   const [invs, setInvs] = useState([]);
+  const [payments, setPayments] = useState([]);
+  const [cards, setCards] = useState([]);
   const [tab, setTab] = useState('stats');
   const [editTpl, setEditTpl] = useState(null);
   const [newTpl, setNewTpl] = useState(false);
+  const [newCard, setNewCard] = useState({card_number:'',card_owner:'',card_type:'HUMO'});
+  const [cardSaving, setCardSaving] = useState(false);
+  const [cardMsg, setCardMsg] = useState('');
+  const [showScreenshot, setShowScreenshot] = useState(null);
 
-  const hdrs = () => ({ 'Content-Type':'application/json', 'x-admin-key': key });
+  const hdrs = () => ({'Content-Type':'application/json','x-admin-key':key});
 
   const doLogin = async () => {
     try {
-      const r = await fetch('/api/admin/stats', { headers: hdrs() });
-      if (!r.ok) { alert('Kalit noto\'g\'ri'); return; }
+      const r = await fetch('/api/admin/stats',{headers:hdrs()});
+      if(!r.ok){alert("Kalit noto'g'ri");return;}
       const d = await r.json();
-      setStats(d); setAuth(true);
-      localStorage.setItem('admin_key', key);
+      setStats(d);setAuth(true);
+      localStorage.setItem('admin_key',key);
       loadAll();
-    } catch { alert('Xatolik'); }
+    } catch{alert('Xatolik');}
   };
 
   const loadAll = async () => {
     const h = hdrs();
     try {
-      const [s, t, u, i] = await Promise.all([
-        fetch('/api/admin/stats', {headers:h}).then(r=>r.json()),
-        fetch('/api/admin/templates', {headers:h}).then(r=>r.json()),
-        fetch('/api/admin/users', {headers:h}).then(r=>r.json()),
-        fetch('/api/admin/invitations', {headers:h}).then(r=>r.json()),
+      const [s,t,u,i,p,c] = await Promise.all([
+        fetch('/api/admin/stats',{headers:h}).then(r=>r.json()),
+        fetch('/api/admin/templates',{headers:h}).then(r=>r.json()),
+        fetch('/api/admin/users',{headers:h}).then(r=>r.json()),
+        fetch('/api/admin/invitations',{headers:h}).then(r=>r.json()),
+        fetch('/api/admin/payments',{headers:h}).then(r=>r.json()),
+        fetch('/api/payments/card/all',{headers:h}).then(r=>r.json()),
       ]);
-      setStats(s); setTpls(t.templates||[]); setUsers(u.users||[]); setInvs(i.invitations||[]);
-    } catch {}
+      setStats(s);setTpls(t.templates||[]);setUsers(u.users||[]);
+      setInvs(i.invitations||[]);setPayments(p.payments||[]);setCards(c.cards||[]);
+    } catch{}
   };
 
-  useEffect(() => { if (key) doLogin(); }, []);
+  const saveCard = async () => {
+    if(!newCard.card_number||!newCard.card_owner){setCardMsg("Barcha maydonlarni to'ldiring");return;}
+    setCardSaving(true);setCardMsg('');
+    try{
+      const r = await fetch('/api/payments/card',{method:'POST',headers:hdrs(),body:JSON.stringify(newCard)});
+      const d = await r.json();
+      if(!r.ok) throw new Error(d.error);
+      setCardMsg('✅ Karta saqlandi!');
+      setNewCard({card_number:'',card_owner:'',card_type:'HUMO'});
+      loadAll();
+    }catch(e){setCardMsg('❌ '+e.message);}
+    finally{setCardSaving(false);}
+  };
 
-  if (!auth) return (
+  const deleteCard = async (id) => {
+    if(!confirm("O'chirish?")) return;
+    await fetch(`/api/payments/card/${id}`,{method:'DELETE',headers:hdrs()});
+    loadAll();
+  };
+
+  useEffect(()=>{if(key)doLogin();},[]);
+
+  if(!auth) return (
     <div className="auth-wrap">
       <div className="form-card">
         <h2 style={{fontSize:20}}>🔐 Admin Panel</h2>
@@ -1081,74 +1220,187 @@ function AdminPage() {
   );
 
   const tabItems = [
-    { id:'stats', icon:'📊', label:'Statistika' },
-    { id:'templates', icon:'🎨', label:'Shablonlar' },
-    { id:'users', icon:'👥', label:'Foydalanuvchilar' },
-    { id:'invitations', icon:'📨', label:'Taklifnomalar' },
+    {id:'stats',icon:'📊',label:'Statistika'},
+    {id:'cards',icon:'💳',label:'Kartalar'},
+    {id:'payments',icon:'💰',label:"To'lovlar"},
+    {id:'templates',icon:'🎨',label:'Shablonlar'},
+    {id:'users',icon:'👥',label:'Foydalanuvchilar'},
+    {id:'invitations',icon:'📨',label:'Taklifnomalar'},
   ];
 
   return (
-    <div style={{ padding:'16px 20px 40px' }}>
-      <h2 style={{ fontSize:20, marginBottom:16 }}>🛠 Admin Panel</h2>
-      <div style={{ display:'flex', gap:6, marginBottom:20, flexWrap:'wrap' }}>
-        {tabItems.map(tb => (
-          <button key={tb.id} onClick={()=>setTab(tb.id)} style={{ padding:'8px 16px', borderRadius:8, border:'none', background:tab===tb.id?'var(--purple)':'var(--bg)', color:tab===tb.id?'#fff':'var(--text2)', fontFamily:'Inter,sans-serif', fontSize:12, fontWeight:600, cursor:'pointer' }}>
+    <div style={{padding:'16px 16px 80px'}}>
+      {/* Screenshot modal */}
+      {showScreenshot&&(
+        <div onClick={()=>setShowScreenshot(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
+          <div style={{position:'relative',maxWidth:500,width:'100%'}}>
+            <img src={showScreenshot} alt="screenshot" style={{width:'100%',borderRadius:12,maxHeight:'80vh',objectFit:'contain'}}/>
+            <button onClick={()=>setShowScreenshot(null)} style={{position:'absolute',top:-12,right:-12,width:32,height:32,borderRadius:'50%',border:'none',background:'#fff',cursor:'pointer',fontSize:16,fontWeight:700}}>✕</button>
+          </div>
+        </div>
+      )}
+
+      <h2 style={{fontSize:20,marginBottom:16}}>🛠 Admin Panel</h2>
+
+      {/* Tablar */}
+      <div style={{display:'flex',gap:6,marginBottom:20,flexWrap:'wrap'}}>
+        {tabItems.map(tb=>(
+          <button key={tb.id} onClick={()=>setTab(tb.id)} style={{padding:'8px 14px',borderRadius:8,border:'none',background:tab===tb.id?'var(--purple)':'var(--bg)',color:tab===tb.id?'#fff':'var(--text2)',fontFamily:'Inter,sans-serif',fontSize:12,fontWeight:600,cursor:'pointer'}}>
             {tb.icon} {tb.label}
           </button>
         ))}
       </div>
 
+      {/* STATISTIKA */}
       {tab==='stats'&&stats&&(
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
-          {[{l:'Foydalanuvchilar',v:stats.users,i:'👥'},{l:'Taklifnomalar',v:stats.invitations,i:'📨'},{l:'Javoblar',v:stats.responses,i:'💬'},{l:'To\'lovlar',v:stats.paidPayments,i:'💰'},{l:'Daromad',v:(stats.revenue||0).toLocaleString()+' so\'m',i:'💵'}].map((s,i)=>(
-            <div key={i} style={{ background:'var(--white)', borderRadius:12, padding:16, boxShadow:'var(--shadow)' }}>
-              <div style={{ fontSize:24, marginBottom:4 }}>{s.i}</div>
-              <div style={{ fontSize:22, fontWeight:800 }}>{s.v}</div>
-              <div style={{ fontSize:11, color:'var(--text2)', marginTop:2 }}>{s.l}</div>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+          {[
+            {l:"Foydalanuvchilar",v:stats.users,i:'👥'},
+            {l:"Taklifnomalar",v:stats.invitations,i:'📨'},
+            {l:"Javoblar",v:stats.responses,i:'💬'},
+            {l:"To'lovlar",v:stats.paidPayments,i:'💰'},
+            {l:"Daromad",v:(stats.revenue||0).toLocaleString()+" so'm",i:'💵'},
+          ].map((s,i)=>(
+            <div key={i} style={{background:'var(--white)',borderRadius:12,padding:16,boxShadow:'var(--shadow)'}}>
+              <div style={{fontSize:24,marginBottom:4}}>{s.i}</div>
+              <div style={{fontSize:22,fontWeight:800}}>{s.v}</div>
+              <div style={{fontSize:11,color:'var(--text2)',marginTop:2}}>{s.l}</div>
             </div>
           ))}
         </div>
       )}
 
+      {/* KARTALAR */}
+      {tab==='cards'&&(
+        <div>
+          <div style={{background:'var(--white)',borderRadius:16,padding:20,marginBottom:16,boxShadow:'var(--shadow)'}}>
+            <div style={{fontSize:15,fontWeight:700,marginBottom:14}}>💳 Yangi karta qo'shish</div>
+            <div className="fg"><label>Karta raqami</label><input className="fi" value={newCard.card_number} onChange={e=>setNewCard(p=>({...p,card_number:e.target.value}))} placeholder="8600 1234 5678 9012"/></div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+              <div className="fg"><label>Karta egasi</label><input className="fi" value={newCard.card_owner} onChange={e=>setNewCard(p=>({...p,card_owner:e.target.value}))} placeholder="ALIYEV JAHONGIR"/></div>
+              <div className="fg"><label>Tur</label>
+                <select className="fi" value={newCard.card_type} onChange={e=>setNewCard(p=>({...p,card_type:e.target.value}))}>
+                  <option>HUMO</option><option>UzCard</option><option>Visa</option><option>MasterCard</option>
+                </select>
+              </div>
+            </div>
+            {cardMsg&&<div style={{fontSize:13,marginTop:8,color:cardMsg.startsWith('✅')?'var(--green)':'var(--red)'}}>{cardMsg}</div>}
+            <button className="main-btn" style={{marginTop:12}} onClick={saveCard} disabled={cardSaving}>
+              {cardSaving?'Saqlanmoqda...':'💾 Saqlash (avvalgisi nofaol bo'ladi)'}
+            </button>
+          </div>
+          <div style={{fontSize:14,fontWeight:700,marginBottom:10}}>Barcha kartalar</div>
+          {cards.length===0?<div style={{textAlign:'center',color:'var(--text2)',padding:20}}>Karta yo'q</div>:cards.map(c=>(
+            <div key={c.id} style={{background:'var(--white)',borderRadius:12,padding:14,marginBottom:8,boxShadow:'var(--shadow)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <div>
+                <div style={{fontSize:14,fontWeight:700,fontFamily:'monospace',letterSpacing:1}}>{c.card_number}</div>
+                <div style={{fontSize:11,color:'var(--text2)',marginTop:3}}>{c.card_owner} • {c.card_type} • {c.is_active?'✅ Aktiv':'⚫ Nofaol'}</div>
+              </div>
+              <button onClick={()=>deleteCard(c.id)} style={{padding:'6px 12px',borderRadius:6,border:'1px solid #fecaca',background:'#fef2f2',color:'var(--red)',fontSize:11,cursor:'pointer',fontFamily:'Inter'}}>🗑</button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* TO'LOVLAR */}
+      {tab==='payments'&&(
+        <div>
+          <div style={{fontSize:14,fontWeight:700,marginBottom:12}}>💰 To'lovlar — {payments.length} ta</div>
+          {payments.length===0?<div style={{textAlign:'center',color:'var(--text2)',padding:20}}>To'lovlar yo'q</div>:payments.map(p=>(
+            <div key={p.id} style={{background:'var(--white)',borderRadius:14,padding:16,marginBottom:10,boxShadow:'var(--shadow)'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8}}>
+                <div>
+                  <div style={{fontSize:14,fontWeight:700}}>👤 {p.user_login}</div>
+                  <div style={{fontSize:11,color:'var(--text2)',marginTop:2}}>{p.category} • {p.inv_uid}</div>
+                </div>
+                <div style={{fontSize:11,padding:'4px 10px',borderRadius:20,background:p.status==='paid'?'#dcfce7':'#fef3c7',color:p.status==='paid'?'#16a34a':'#92400e',fontWeight:700}}>
+                  {p.status==='paid'?'✅ To'langan':'⏳ Kutilmoqda'}
+                </div>
+              </div>
+              {p.paid_at&&<div style={{fontSize:11,color:'var(--text3)',marginBottom:8}}>📅 {new Date(p.paid_at).toLocaleString('uz')}</div>}
+              {p.screenshot_base64&&(
+                <button onClick={()=>setShowScreenshot(p.screenshot_base64)} style={{display:'flex',alignItems:'center',gap:6,padding:'8px 14px',borderRadius:8,border:'1px solid var(--border)',background:'var(--bg)',fontSize:12,cursor:'pointer',fontFamily:'Inter',color:'var(--purple)',fontWeight:600}}>
+                  📸 Screenshotni ko'rish
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* SHABLONLAR */}
       {tab==='templates'&&(
         <div>
           <button className="main-btn" style={{marginBottom:16}} onClick={()=>{setNewTpl(true);setEditTpl(null)}}>+ Yangi shablon</button>
           {(newTpl||editTpl)&&<TplForm tpl={editTpl} hdrs={hdrs} onDone={()=>{setNewTpl(false);setEditTpl(null);loadAll()}} onCancel={()=>{setNewTpl(false);setEditTpl(null)}}/>}
           {tpls.map(tp=>(
-            <div key={tp.id} style={{ background:'var(--white)', borderRadius:12, padding:14, marginBottom:8, boxShadow:'var(--shadow)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+            <div key={tp.id} style={{background:'var(--white)',borderRadius:12,padding:14,marginBottom:8,boxShadow:'var(--shadow)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
               <div>
-                <div style={{ fontSize:13, fontWeight:600 }}>{tp.name_uz}</div>
-                <div style={{ fontSize:11, color:'var(--text2)' }}>{tp.category} • {tp.is_free?'Bepul':tp.price?.toLocaleString()+' so\'m'} • {tp.is_active?'✅ Faol':'❌ Nofaol'}</div>
+                <div style={{fontSize:13,fontWeight:600}}>{tp.name_uz}</div>
+                <div style={{fontSize:11,color:'var(--text2)'}}>{tp.category} • {tp.is_free?'Bepul':tp.price?.toLocaleString()+" so'm"} • {tp.is_active?'✅ Faol':'❌ Nofaol'}</div>
               </div>
-              <div style={{ display:'flex', gap:6 }}>
-                <button onClick={()=>{setEditTpl(tp);setNewTpl(false)}} style={{ padding:'6px 12px', borderRadius:6, border:'1px solid var(--border)', background:'var(--bg)', fontSize:11, cursor:'pointer', fontFamily:'Inter' }}>✏️</button>
-                <button onClick={async()=>{if(confirm('O\'chirish?')){await fetch(`/api/admin/templates/${tp.id}`,{method:'DELETE',headers:hdrs()});loadAll()}}} style={{ padding:'6px 12px', borderRadius:6, border:'1px solid #fecaca', background:'#fef2f2', color:'var(--red)', fontSize:11, cursor:'pointer', fontFamily:'Inter' }}>🗑</button>
+              <div style={{display:'flex',gap:6}}>
+                <button onClick={()=>{setEditTpl(tp);setNewTpl(false)}} style={{padding:'6px 12px',borderRadius:6,border:'1px solid var(--border)',background:'var(--bg)',fontSize:11,cursor:'pointer',fontFamily:'Inter'}}>✏️</button>
+                <button onClick={async()=>{if(confirm("O'chirish?")){await fetch(`/api/admin/templates/${tp.id}`,{method:'DELETE',headers:hdrs()});loadAll()}}} style={{padding:'6px 12px',borderRadius:6,border:'1px solid #fecaca',background:'#fef2f2',color:'var(--red)',fontSize:11,cursor:'pointer',fontFamily:'Inter'}}>🗑</button>
               </div>
             </div>
           ))}
         </div>
       )}
 
+      {/* FOYDALANUVCHILAR */}
       {tab==='users'&&(
-        <div>{users.length===0?<div style={{textAlign:'center',color:'var(--text2)',padding:20}}>Foydalanuvchilar yo'q</div>:users.map(u=>(
-          <div key={u.id} style={{ background:'var(--white)', borderRadius:10, padding:12, marginBottom:6, boxShadow:'var(--shadow)', fontSize:13 }}>
-            <strong>{u.login}</strong> <span style={{ color:'var(--text2)', fontSize:11 }}>ID: {u.uid} • {new Date(u.created_at).toLocaleDateString()}</span>
-          </div>
-        ))}</div>
+        <div>
+          <div style={{fontSize:14,fontWeight:700,marginBottom:12}}>👥 Foydalanuvchilar — {users.length} ta</div>
+          {users.length===0?<div style={{textAlign:'center',color:'var(--text2)',padding:20}}>Foydalanuvchilar yo'q</div>:users.map(u=>(
+            <div key={u.id} style={{background:'var(--white)',borderRadius:12,padding:14,marginBottom:8,boxShadow:'var(--shadow)'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
+                <div style={{fontSize:14,fontWeight:700}}>👤 {u.login}</div>
+                <div style={{fontSize:11,color:'var(--text3)'}}>{new Date(u.created_at).toLocaleDateString()}</div>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6}}>
+                <div style={{background:'var(--bg)',borderRadius:8,padding:'8px 10px'}}>
+                  <div style={{fontSize:10,color:'var(--text3)',marginBottom:2}}>LOGIN</div>
+                  <div style={{fontSize:13,fontWeight:600,fontFamily:'monospace'}}>{u.login}</div>
+                </div>
+                <div style={{background:'var(--bg)',borderRadius:8,padding:'8px 10px'}}>
+                  <div style={{fontSize:10,color:'var(--text3)',marginBottom:2}}>UID</div>
+                  <div style={{fontSize:13,fontWeight:600,fontFamily:'monospace'}}>{u.uid}</div>
+                </div>
+                {u.telegram_id&&<div style={{background:'#e0f2fe',borderRadius:8,padding:'8px 10px',gridColumn:'1/-1'}}>
+                  <div style={{fontSize:10,color:'#0369a1',marginBottom:2}}>TELEGRAM ID</div>
+                  <div style={{fontSize:13,fontWeight:600,fontFamily:'monospace',color:'#0369a1'}}>{u.telegram_id}</div>
+                </div>}
+              </div>
+            </div>
+          ))}
+        </div>
       )}
 
+      {/* TAKLIFNOMALAR */}
       {tab==='invitations'&&(
-        <div>{invs.length===0?<div style={{textAlign:'center',color:'var(--text2)',padding:20}}>Taklifnomalar yo'q</div>:invs.map(inv=>(
-          <div key={inv.id} style={{ background:'var(--white)', borderRadius:10, padding:12, marginBottom:6, boxShadow:'var(--shadow)', fontSize:13 }}>
-            <div style={{ fontWeight:600 }}>{inv.template_name || inv.category}</div>
-            <div style={{ fontSize:11, color:'var(--text2)' }}>👤 {inv.user_login} • 💬 {inv.response_count} javob • {inv.is_free?'Bepul':'Pullik'}</div>
-            {inv.link&&<div style={{ fontSize:10, color:'var(--purple)', marginTop:4, wordBreak:'break-all' }}>{inv.link}</div>}
-          </div>
-        ))}</div>
+        <div>
+          <div style={{fontSize:14,fontWeight:700,marginBottom:12}}>📨 Taklifnomalar — {invs.length} ta</div>
+          {invs.length===0?<div style={{textAlign:'center',color:'var(--text2)',padding:20}}>Taklifnomalar yo'q</div>:invs.map(inv=>(
+            <div key={inv.id} style={{background:'var(--white)',borderRadius:12,padding:14,marginBottom:8,boxShadow:'var(--shadow)'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:6}}>
+                <div style={{fontSize:13,fontWeight:700}}>{inv.template_name||inv.category}</div>
+                <div style={{fontSize:11,padding:'3px 8px',borderRadius:20,background:inv.is_free?'#f0fdf4':'#fef3c7',color:inv.is_free?'#16a34a':'#92400e',fontWeight:600}}>
+                  {inv.is_free?'Bepul':'💳 Pullik'}
+                </div>
+              </div>
+              <div style={{fontSize:12,color:'var(--text2)',marginBottom:4}}>
+                👤 <strong>{inv.user_login}</strong> • 💬 {inv.response_count} javob • 📅 {new Date(inv.created_at).toLocaleDateString()}
+              </div>
+              {inv.link&&<div style={{fontSize:11,color:'var(--purple)',wordBreak:'break-all',padding:'6px 8px',background:'#f5f3ff',borderRadius:6}}>{inv.link}</div>}
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
 }
+
 
 // ==================== TEMPLATE FORM (ADMIN) ====================
 function TplForm({ tpl, hdrs, onDone, onCancel }) {
