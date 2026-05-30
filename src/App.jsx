@@ -1286,7 +1286,7 @@ function AdminPage() {
             </div>
             {cardMsg&&<div style={{fontSize:13,marginTop:8,color:cardMsg.startsWith('✅')?'var(--green)':'var(--red)'}}>{cardMsg}</div>}
             <button className="main-btn" style={{marginTop:12}} onClick={saveCard} disabled={cardSaving}>
-              {cardSaving?'Saqlanmoqda...':'💾 Saqlash (avvalgisi nofaol bo'ladi)'}
+              {cardSaving?"Saqlanmoqda...":"💾 Saqlash (avvalgisi nofaol bo'ladi)"}
             </button>
           </div>
           <div style={{fontSize:14,fontWeight:700,marginBottom:10}}>Barcha kartalar</div>
