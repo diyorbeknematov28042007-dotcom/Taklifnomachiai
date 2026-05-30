@@ -429,7 +429,7 @@ function TplCard({ tp }) {
     <div className="tpl-card">
       <div className="tpl-thumb" style={{ background: tp.bg_style || "linear-gradient(135deg,#f5f0e8,#fff9f0)", color: tp.text_color || "#333" }}>
         <span className={`tpl-badge ${tp.is_free ? "free" : "premium"}`}>{tp.is_free ? t.free : t.premium}</span>
-        <div style={{ fontFamily:"'Playfair Display",serif", fontSize:15, fontWeight:700, marginTop:8, textShadow:"0 1px 6px rgba(0,0,0,0.15)", textAlign:"center", padding:"0 8px" }}>
+        <div style={{ fontFamily:"'Playfair Display', serif", fontSize:15, fontWeight:700, marginTop:8, textShadow:"0 1px 6px rgba(0,0,0,0.15)", textAlign:"center", padding:"0 8px" }}>
           {tp.category === "wedding" && sample && `${sample.name1 || ""} & ${sample.name2 || ""}`}
           {tp.category === "birthday" && (sample?.person || "")}
           {tp.category === "event" && (sample?.name || "")}
