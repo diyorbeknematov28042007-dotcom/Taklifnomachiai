@@ -2,14 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { neon, neonConfig } from '@neondatabase/serverless';
+import { neon } from '@neondatabase/serverless';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import multer from 'multer';
-
-// Neon serverless optimizatsiya — CPU hours tejash
-neonConfig.fetchConnectionCache = true;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,6 +21,23 @@ const PORT = process.env.PORT || 3001;
 const SITE_URL = (process.env.SITE_URL || 'https://taklifnomachiai.onrender.com').replace(/\/+$/, '');
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const IS_PROD = NODE_ENV === 'production';
+
+// Startup checks
+if (!DATABASE_URL) { console.error('❌ DATABASE_URL env kerak!'); process.exit(1); }
+if (!JWT_SECRET && IS_PROD) { console.error('❌ JWT_SECRET env kerak (production)!'); process.exit(1); }
+
+const sql = neon(DATABASE_URL);
+const SECRET = JWT_SECRET || 'dev-secret-only';
+
+// ==================== MULTER (screenshot upload) ====================
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) cb(null, true);
+    else cb(new Error('Faqat rasm yuklang'));
+  }
+});
 
 // Startup checks
 if (!DATABASE_URL) { console.error('❌ DATABASE_URL env kerak!'); process.exit(1); }
