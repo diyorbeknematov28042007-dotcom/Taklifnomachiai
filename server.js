@@ -39,13 +39,6 @@ const upload = multer({
   }
 });
 
-// Startup checks
-if (!DATABASE_URL) { console.error('❌ DATABASE_URL env kerak!'); process.exit(1); }
-if (!JWT_SECRET && IS_PROD) { console.error('❌ JWT_SECRET env kerak (production)!'); process.exit(1); }
-
-const sql = neon(DATABASE_URL);
-const SECRET = JWT_SECRET || 'dev-secret-only';
-
 // ==================== APP SETUP ====================
 const app = express();
 
