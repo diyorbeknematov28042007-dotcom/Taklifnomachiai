@@ -342,9 +342,14 @@ function Home() {
           <div className="feat-row-item"><SparkleIcon size={16} color="#d4a574"/> {lang==="uz"?"Professional":"Проф."}</div>
           <div className="feat-row-item"><svg style={{width:16,height:16,verticalAlign:"middle"}} viewBox="0 0 24 24" fill="none"><rect x="5" y="2" width="14" height="20" rx="3" stroke="#d4a574" strokeWidth="1.5"/><circle cx="12" cy="18" r="1" fill="#d4a574"/></svg> {lang==="uz"?"Mobil":"Мобильный"}</div>
         </div>
-        <button className="custom-banner-btn" onClick={() => window.open("https://t.me/ndd_admin")}>
-          📩 {lang === "uz" ? "Buyurtma berish" : "Заказать"}
-        </button>
+        <div className="custom-banner-btns">
+          <a href="https://t.me/taklifnomachi_online" target="_blank" rel="noopener noreferrer" className="custom-banner-btn-outline">
+            📸 {lang === "uz" ? "Namunalar" : "Примеры"}
+          </a>
+          <button className="custom-banner-btn" onClick={() => window.open("https://t.me/ndd_admin")}>
+            📩 {lang === "uz" ? "Buyurtma berish" : "Заказать"}
+          </button>
+        </div>
       </div>
 
       {/* Tavsiya etiladi */}
