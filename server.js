@@ -349,53 +349,96 @@ app.get('/api/responses/:invitationId', authMiddleware, async (req, res) => {
 
 // ==================== PAYMENTS ====================
 
-// Bot uchun — kod bo'yicha to'lov ma'lumotlarini olish
-app.get('/api/payments/check/:code', async (req, res) => {
+// GET /api/payments/card — aktiv kartani olish (public)
+app.get('/api/payments/card', async (req, res) => {
   try {
-    const code = sanitize(req.params.code, 10);
-    const p = await sql`
-      SELECT p.*, i.category, i.data, i.slug, i.link, i.template_id,
-        t.name_uz, t.name_ru, t.price as tpl_price,
-        u.login as user_login
-      FROM payments p
-      JOIN invitations i ON p.invitation_id = i.id
-      JOIN templates t ON i.template_id = t.id
-      JOIN users u ON p.user_id = u.id
-      WHERE p.code = ${code}
-      ORDER BY p.created_at DESC LIMIT 1`;
-    if (p.length === 0) return res.status(404).json({ error: 'Kod topilmadi' });
-    const pay = p[0];
-    res.json({
-      payment: {
-        id: pay.id, code: pay.code, amount: pay.amount, status: pay.status,
-        category: pay.category, slug: pay.slug, link: pay.link,
-        template_name: pay.name_uz, user_login: pay.user_login,
-        data: pay.data, created_at: pay.created_at
-      }
-    });
-  } catch (e) { logError('payCheck', e); res.status(500).json({ error: 'Server xatosi' }); }
+    const r = await sql`
+      SELECT id, card_number, card_owner, card_type
+      FROM payment_cards WHERE is_active = true
+      ORDER BY created_at DESC LIMIT 1`;
+    if (r.length === 0) return res.status(404).json({ error: 'Karta topilmadi' });
+    res.json(r[0]);
+  } catch (e) { logError('payCard', e); res.status(500).json({ error: 'Server xatosi' }); }
 });
 
-// Bot'dan chaqiriladi — to'lovni tasdiqlash (avto yoki admin)
-app.post('/api/payments/verify', async (req, res) => {
+// POST /api/payments/card — yangi karta qo'shish (admin)
+app.post('/api/payments/card', adminMiddleware, async (req, res) => {
   try {
-    const { code, telegramId } = req.body;
-    if (!code) return res.status(400).json({ error: 'Kod kerak' });
-    const p = await sql`SELECT * FROM payments WHERE code = ${sanitize(code, 10)} AND status = 'pending'`;
-    if (p.length === 0) return res.status(404).json({ error: 'To\'lov topilmadi yoki allaqachon tasdiqlangan' });
-    const pay = p[0];
+    const { card_number, card_owner, card_type } = req.body;
+    if (!card_number || !card_owner || !card_type)
+      return res.status(400).json({ error: 'card_number, card_owner, card_type kerak' });
+    const validTypes = ['HUMO', 'UzCard', 'Visa', 'MasterCard'];
+    if (!validTypes.includes(card_type))
+      return res.status(400).json({ error: 'card_type: HUMO, UzCard, Visa yoki MasterCard' });
+    await sql`UPDATE payment_cards SET is_active = false`;
+    const r = await sql`
+      INSERT INTO payment_cards (card_number, card_owner, card_type, is_active)
+      VALUES (${sanitize(card_number, 25)}, ${sanitize(card_owner, 100)}, ${card_type}, true)
+      RETURNING *`;
+    res.json(r[0]);
+  } catch (e) { logError('payCardCreate', e); res.status(500).json({ error: 'Server xatosi' }); }
+});
 
-    // To'lovni tasdiqlash
-    await sql`UPDATE payments SET status = 'paid', telegram_id = ${telegramId || null}, paid_at = NOW() WHERE id = ${pay.id}`;
-    // Taklifnomani aktivlashtirish
-    await sql`UPDATE invitations SET is_paid = true WHERE id = ${pay.invitation_id}`;
-    // Telegram ID saqlash
-    if (telegramId) await sql`UPDATE users SET telegram_id = ${telegramId} WHERE id = ${pay.user_id}`;
+// GET /api/payments/card/all — barcha kartalar (admin)
+app.get('/api/payments/card/all', adminMiddleware, async (req, res) => {
+  try {
+    const r = await sql`SELECT * FROM payment_cards ORDER BY created_at DESC`;
+    res.json({ cards: r });
+  } catch (e) { logError('payCardAll', e); res.status(500).json({ error: 'Server xatosi' }); }
+});
 
-    // Link qaytarish
-    const inv = await sql`SELECT link, slug FROM invitations WHERE id = ${pay.invitation_id}`;
-    res.json({ success: true, link: inv[0]?.link || null, slug: inv[0]?.slug || null });
-  } catch (e) { logError('payment', e); res.status(500).json({ error: 'Server xatosi' }); }
+// DELETE /api/payments/card/:id — kartani o'chirish (admin)
+app.delete('/api/payments/card/:id', adminMiddleware, async (req, res) => {
+  try {
+    await sql`DELETE FROM payment_cards WHERE id = ${req.params.id}`;
+    res.json({ success: true });
+  } catch (e) { logError('payCardDel', e); res.status(500).json({ error: 'Server xatosi' }); }
+});
+
+// POST /api/payments/upload — screenshot yuklash + avto-tasdiqlash
+const uploadLimiter = rateLimit(60000, 5);
+app.post('/api/payments/upload', authMiddleware, uploadLimiter, upload.single('screenshot'), async (req, res) => {
+  try {
+    const { invitation_uid } = req.body;
+    if (!req.file) return res.status(400).json({ error: 'Screenshot kerak' });
+    if (!invitation_uid) return res.status(400).json({ error: 'invitation_uid kerak' });
+
+    const invR = await sql`
+      SELECT id, user_id, is_free, is_paid FROM invitations
+      WHERE uid = ${sanitize(invitation_uid, 10)}`;
+    if (invR.length === 0) return res.status(404).json({ error: 'Taklifnoma topilmadi' });
+    const inv = invR[0];
+
+    if (inv.user_id !== req.user.id) return res.status(403).json({ error: 'Ruxsat yo\'q' });
+    if (inv.is_free) return res.status(400).json({ error: 'Bu taklifnoma bepul' });
+    if (inv.is_paid) return res.status(400).json({ error: 'Allaqachon to\'langan' });
+
+    const base64Full = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+
+    const payR = await sql`SELECT id FROM payments WHERE invitation_id = ${inv.id} LIMIT 1`;
+    if (payR.length > 0) {
+      await sql`UPDATE payments SET screenshot_base64 = ${base64Full}, status = 'paid', paid_at = NOW() WHERE id = ${payR[0].id}`;
+    } else {
+      await sql`
+        INSERT INTO payments (user_id, invitation_id, code, amount, status, screenshot_base64, paid_at)
+        VALUES (${req.user.id}, ${inv.id}, ${generateUID()}, 0, 'paid', ${base64Full}, NOW())`;
+    }
+    await sql`UPDATE invitations SET is_paid = true WHERE id = ${inv.id}`;
+    res.json({ success: true, message: 'To\'lov tasdiqlandi!' });
+  } catch (e) { logError('payUpload', e); res.status(500).json({ error: 'Server xatosi' }); }
+});
+
+// GET /api/payments/status/:uid — to'lov holatini tekshirish
+app.get('/api/payments/status/:uid', authMiddleware, async (req, res) => {
+  try {
+    const r = await sql`
+      SELECT p.status, p.paid_at, i.is_paid, i.slug, i.link
+      FROM payments p JOIN invitations i ON i.id = p.invitation_id
+      WHERE i.uid = ${sanitize(req.params.uid, 10)} AND i.user_id = ${req.user.id}
+      ORDER BY p.created_at DESC LIMIT 1`;
+    if (r.length === 0) return res.json({ status: 'not_found', is_paid: false });
+    res.json(r[0]);
+  } catch (e) { logError('payStatus', e); res.status(500).json({ error: 'Server xatosi' }); }
 });
 
 app.post('/api/invitations/set-slug', authMiddleware, async (req, res) => {
@@ -487,6 +530,21 @@ app.get('/api/admin/invitations', adminMiddleware, async (req, res) => {
       ORDER BY i.created_at DESC LIMIT 100`;
     res.json({ invitations: r });
   } catch (e) { logError('adminInv', e); res.status(500).json({ error: 'Server xatosi' }); }
+});
+
+// Admin — to'lovlar ro'yxati (screenshot bilan)
+app.get('/api/admin/payments', adminMiddleware, async (req, res) => {
+  try {
+    const r = await sql`
+      SELECT p.id, p.code, p.amount, p.status, p.paid_at, p.screenshot_base64,
+        i.uid as inv_uid, i.category, i.slug,
+        u.login as user_login
+      FROM payments p
+      JOIN invitations i ON p.invitation_id = i.id
+      JOIN users u ON p.user_id = u.id
+      ORDER BY p.created_at DESC LIMIT 100`;
+    res.json({ payments: r });
+  } catch (e) { logError('adminPayments', e); res.status(500).json({ error: 'Server xatosi' }); }
 });
 
 // ==================== OG TAGS (link preview) ====================
