@@ -186,13 +186,13 @@ function FaqPage() {
 
   const faqs = lang==="uz" ? [
     { q: "Taklifnoma qanday tayyorlanadi?", a: "1. Shablon tanlaysiz\n2. Ma'lumotlarni kiritasiz (ism, sana, manzil)\n3. Link olasiz va do'stlaringizga yuborasiz\n4. Mehmonlar javob yuboradi — siz profildan ko'rasiz" },
-    { q: "Qanday to'lov qilaman?", a: "Premium shablon tanlaganda 6 raqamli kod beriladi. Shu kodni @Taklifnomachi_online_bot ga yuboring, ko'rsatilgan kartaga to'lov qiling va screenshot yuboring. Admin tasdiqlaydi — link tayyor!" },
-    { q: "Agar to'lovim tasdiqlanmasa kimga bog'lanay?", a: "Admin bilan bog'laning: @ndd_admin\nYoki qo'llab-quvvatlash botimiz orqali: @Taklifnomachi_online_bot" },
+    { q: "Qanday to'lov qilaman?", a: "Premium shablon tanlagach to'lov sahifasida bank karta raqami ko'rsatiladi. Kartaga to'lov qiling, screenshotni saytga yuklang — darhol tasdiqlanadi va linkingiz tayyor bo'ladi!" },
+    { q: "Agar to'lovim tasdiqlanmasa kimga bog'lanay?", a: "Admin bilan bog'laning: @ndd_admin (Telegram)" },
     { q: "Maxsus taklifnoma buyurtmasi nima?", a: "Bu shaxsiy talablaringiz asosida alohida domen va profillik sayt orqali yaratilgan maxsus taklifnoma. Narxi 159,000 so'mdan boshlanadi. Buyurtma uchun @ndd_admin ga murojaat qiling." },
   ] : [
     { q: "Как создать приглашение?", a: "1. Выберите шаблон\n2. Заполните данные\n3. Получите ссылку\n4. Отправьте гостям" },
-    { q: "Как оплатить?", a: "При выборе премиум шаблона вы получите 6-значный код. Отправьте его боту @Taklifnomachi_online_bot, оплатите и отправьте скриншот." },
-    { q: "Если оплата не подтверждена?", a: "Свяжитесь с админом: @ndd_admin\nИли через бот поддержки: @Taklifnomachi_online_bot" },
+    { q: "Как оплатить?", a: "После выбора премиум шаблона на странице оплаты будет показан номер карты. Переведите сумму, загрузите скриншот — оплата подтверждается автоматически!" },
+    { q: "Если оплата не подтверждена?", a: "Свяжитесь с администратором: @ndd_admin (Telegram)" },
     { q: "Что такое индивидуальное приглашение?", a: "Персональный сайт-приглашение на отдельном домене. От 159,000 сум. Обратитесь к @ndd_admin." },
   ];
 
@@ -214,9 +214,7 @@ function FaqPage() {
           <a href="https://t.me/ndd_admin" target="_blank" rel="noopener" style={{ display:"flex", alignItems:"center", gap:10, padding:12, background:"var(--white)", borderRadius:12, border:"1px solid var(--border)", textDecoration:"none", color:"var(--text)", fontSize:14, fontWeight:500 }}>
             👤 {lang==="uz"?"Admin bilan bog\'lanish":"Связаться с админом"}
           </a>
-          <a href="https://t.me/Taklifnomachi_online_bot" target="_blank" rel="noopener" style={{ display:"flex", alignItems:"center", gap:10, padding:12, background:"var(--white)", borderRadius:12, border:"1px solid var(--border)", textDecoration:"none", color:"var(--text)", fontSize:14, fontWeight:500 }}>
-             {lang==="uz"?"Qo\'llab-quvvatlash boti":"Бот поддержки"}
-          </a>
+
         </div>
       </div>
     </div>
@@ -589,22 +587,7 @@ function AuthPage() {
         <div className="auth-sw">{mode==="login"?t.noAccount:t.hasAccount}{" "}<button onClick={()=>{setMode(m=>m==="login"?"register":"login");setErr("");setSugs([])}}>{mode==="login"?t.registerBtn:t.loginBtn}</button></div>
 
         {/* Telegram bot orqali ro'yxatdan o'tish tavsiyasi */}
-        <div style={{ marginTop:20, paddingTop:16, borderTop:"1px solid var(--border)" }}>
-          <div style={{ fontSize:12, color:"var(--text3)", textAlign:"center", marginBottom:10 }}>
-            {lang==="uz"?"Shuningdek, quyidagi usullar orqali ham ro\'yxatdan o\'tishingiz mumkin:":"Также можно зарегистрироваться через:"}
-          </div>
-          <a href="https://t.me/Taklifnomachi_online_bot" target="_blank" rel="noopener" style={{
-            display:"flex", alignItems:"center", justifyContent:"center", gap:8,
-            padding:"12px 16px", borderRadius:12, border:"1px solid var(--border)",
-            background:"var(--bg)", textDecoration:"none", color:"var(--text)",
-            fontSize:13, fontWeight:600, marginBottom:8
-          }}>
-             Telegram bot orqali
-          </a>
-          <div style={{ fontSize:11, color:"var(--text3)", textAlign:"center" }}>
-            {lang==="uz"?"Tez va qulay — botda maxsus kod orqali ro\'yxatdan o\'ting":"Быстро и удобно — регистрация через бот с уникальным кодом"}
-          </div>
-        </div>
+
       </div>
     </div>
   );
