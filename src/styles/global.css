@@ -636,13 +636,15 @@ textarea.fi { min-height: 80px; resize: vertical; }
 .pay-bank-card {
   background: linear-gradient(135deg, #1a2f4e 0%, #2d5282 50%, #1a365d 100%);
   border-radius: 18px;
-  padding: 22px 20px 18px;
+  padding: 18px 16px 16px;
   margin: 16px 0 10px;
   color: #fff;
   position: relative;
   overflow: hidden;
   box-shadow: 0 8px 32px rgba(29, 78, 130, 0.35);
-  min-height: 130px;
+  min-height: 120px;
+  width: 100%;
+  box-sizing: border-box;
 }
 .pay-bank-top {
   display: flex;
@@ -665,12 +667,15 @@ textarea.fi { min-height: 80px; resize: vertical; }
   letter-spacing: 0.5px;
 }
 .pay-bank-number {
-  font-size: 20px;
+  font-size: clamp(13px, 4vw, 18px);
   font-weight: 700;
-  letter-spacing: 3px;
+  letter-spacing: 2px;
   font-family: 'Courier New', monospace;
   margin-bottom: 14px;
   text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  white-space: nowrap;
+  overflow: hidden;
+  width: 100%;
 }
 .pay-bank-owner {
   font-size: 13px;
@@ -891,12 +896,14 @@ textarea.fi { min-height: 80px; resize: vertical; }
 
 /* ============ KARTA RAQAM — bir qatorda ============ */
 .pay-bank-number {
-  font-size: 22px !important;
+  font-size: clamp(13px, 4vw, 18px) !important;
   font-weight: 700;
-  letter-spacing: 4px;
+  letter-spacing: 2px;
   font-family: 'Courier New', 'Lucida Console', monospace;
   margin-bottom: 16px;
   white-space: nowrap;
+  overflow: hidden;
+  width: 100%;
   text-shadow: 0 1px 4px rgba(0,0,0,0.3);
 }
 .pay-bank-circle1 {
