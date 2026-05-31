@@ -807,7 +807,7 @@ function SharePage() {
         </div>
         {card ? <>
           <div className="pay-bank-number">
-            {card.card_number.replace(/\s/g,"").replace(/(\d{4})(\d{4})(\d{4})(\d{4})/,"$1  $2  $3  $4")}
+            {card.card_number.replace(/\s/g,"").replace(/(\d{4})(\d{4})(\d{4})(\d{4})/,"$1 $2 $3 $4")}
           </div>
           <div className="pay-bank-owner">{card.card_owner}</div>
         </> : <div style={{fontSize:13,opacity:.7,padding:"16px 0",textAlign:"center"}}>{lang==="uz"?"Yuklanmoqda...":"Загрузка..."}</div>}
