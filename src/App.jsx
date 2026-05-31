@@ -765,8 +765,11 @@ function SharePage() {
           <label style={{fontSize:13,fontWeight:700,display:"block",marginBottom:6}}>{t.customLink}</label>
           <div style={{fontSize:11,color:"var(--text2)",marginBottom:10}}>{t.customLinkHint}</div>
           <div className="slug-row">
-            <div className="slug-pre">{window.location.host}/v/</div>
+            <div className="slug-pre">taklifnomachi.online/v/</div>
             <input className="slug-inp" value={slug} onChange={e=>setSlug(e.target.value.replace(/[^a-zA-Z0-9-]/g,"").slice(0,30))} placeholder="dilnoza-javohir"/>
+          </div>
+          <div style={{fontSize:11,color:"var(--text3)",marginTop:6,padding:"0 2px"}}>
+            🔗 https://taklifnomachi.online/v/<strong>{slug||"dilnoza-javohir"}</strong>
           </div>
           <button className="main-btn" style={{marginTop:12}} disabled={slug.length<3} onClick={async()=>{
             try{const d=await api.setSlug(inv.id,slug);setPL(d.link);}catch(e){alert(e.message);}
@@ -789,29 +792,40 @@ function SharePage() {
   // Premium — to'lov sahifasi
   return (
     <div className="pay-card fu" style={{border:"none",padding:"20px 16px"}}>
+
+      {/* Narx */}
       <div style={{textAlign:"center",marginBottom:20}}>
         <div style={{fontSize:13,color:"var(--text2)",marginBottom:4}}>{lang==="uz"?"Premium shablon":"Премиум шаблон"}</div>
-        <div style={{fontSize:28,fontWeight:800,color:"var(--text1)"}}>{inv.price?.toLocaleString()} <span style={{fontSize:16,fontWeight:500}}>so'm</span></div>
+        <div style={{fontSize:32,fontWeight:800,color:"var(--text1)",letterSpacing:-1}}>{inv.price?.toLocaleString()} <span style={{fontSize:16,fontWeight:500}}>so'm</span></div>
       </div>
 
+      {/* ── 1. BANK KARTA — bir qatorda, haqiqiy karta formatda ── */}
       <div className="pay-bank-card">
         <div className="pay-bank-top">
           <div className="pay-bank-label">{lang==="uz"?"TO'LOV KARTASI":"КАРТА ДЛЯ ОПЛАТЫ"}</div>
           {card&&<div className="pay-bank-type">{card.card_type}</div>}
         </div>
         {card ? <>
-          <div className="pay-bank-number">{card.card_number.replace(/\s/g,"").replace(/(\d{4})/g,"$1 ").trim()}</div>
+          <div className="pay-bank-number">
+            {card.card_number.replace(/\s/g,"").replace(/(\d{4})(\d{4})(\d{4})(\d{4})/,"$1  $2  $3  $4")}
+          </div>
           <div className="pay-bank-owner">{card.card_owner}</div>
         </> : <div style={{fontSize:13,opacity:.7,padding:"16px 0",textAlign:"center"}}>{lang==="uz"?"Yuklanmoqda...":"Загрузка..."}</div>}
         <div className="pay-bank-shine"/>
+        <div className="pay-bank-circle1"/>
+        <div className="pay-bank-circle2"/>
       </div>
 
+      {/* Nusxalash */}
       {card&&(
         <button className="pay-copy-btn" onClick={()=>copy(card.card_number.replace(/\s/g,""),setCardCopied)}>
-          {cardCopied?<><CheckIcon size={15} color="#16a34a"/> {lang==="uz"?"Nusxalandi!":"Скопировано!"}</> :<><CopyIcon size={15}/> {lang==="uz"?"Karta raqamini nusxalash":"Скопировать номер карты"}</>}
+          {cardCopied
+            ?<><CheckIcon size={15} color="#16a34a"/> {lang==="uz"?"Nusxalandi!":"Скопировано!"}</>
+            :<><CopyIcon size={15}/> {lang==="uz"?"Karta raqamini nusxalash":"Скопировать номер карты"}</>}
         </button>
       )}
 
+      {/* Qadamlar */}
       <div className="pay-steps">
         {(lang==="uz"?[
           {n:1,text:`${inv.price?.toLocaleString()} so'm yuqoridagi kartaga o'tkazing`},
@@ -829,6 +843,7 @@ function SharePage() {
         ))}
       </div>
 
+      {/* ── 2. SCREENSHOT YUKLASH ── */}
       <div className="pay-upload-wrap">
         <div style={{fontSize:13,fontWeight:700,marginBottom:10}}>{lang==="uz"?"📸 To'lov screenshotini yuklang":"📸 Загрузите скриншот оплаты"}</div>
         <label className={`pay-upload-zone${screenshot?" uploaded":""}`}>
@@ -846,14 +861,29 @@ function SharePage() {
             </div>
           )}
         </label>
+
+        {/* ── 3. PROGRESS BAR — "Tekshirilmoqda" animatsiyasi ── */}
+        {uploading&&(
+          <div className="pay-checking-wrap">
+            <div className="pay-checking-bar">
+              <div className="pay-checking-fill"/>
+            </div>
+            <div className="pay-checking-text">
+              🔍 {lang==="uz"?"To'lov tekshirilmoqda...":"Проверяем оплату..."}
+            </div>
+          </div>
+        )}
       </div>
 
       {payErr&&<div style={{background:"#fef2f2",border:"1px solid #fecaca",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#dc2626",marginBottom:12}}>⚠️ {payErr}</div>}
 
       <button className="main-btn" style={{fontSize:15,padding:"16px"}} disabled={!screenshot||uploading} onClick={uploadScreenshot}>
-        {uploading?<span className="pay-uploading">{lang==="uz"?"Yuklanmoqda...":"Загрузка..."}</span>:(lang==="uz"?"✅ To'lovni tasdiqlash":"✅ Подтвердить оплату")}
+        {uploading
+          ?<span className="pay-uploading">{lang==="uz"?"Tekshirilmoqda...":"Проверяем..."}</span>
+          :(lang==="uz"?"✅ To'lovni tasdiqlash":"✅ Подтвердить оплату")}
       </button>
 
+      {/* Admin */}
       <div className="pay-admin-row">
         <span style={{fontSize:12,color:"var(--text2)"}}>{lang==="uz"?"Savol bor?":"Есть вопросы?"}</span>
         <a href="https://t.me/ndd_admin" target="_blank" rel="noopener noreferrer" className="pay-admin-link">
@@ -861,6 +891,20 @@ function SharePage() {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </a>
       </div>
+
+      {/* ── 4. CLICK/PAYME PLACEHOLDER ── */}
+      <div className="pay-soon-wrap">
+        <div className="pay-soon-title">{lang==="uz"?"Tez orada:":"Скоро:"}</div>
+        <div className="pay-soon-btns">
+          {["Click","Payme"].map(name=>(
+            <button key={name} className="pay-soon-btn" onClick={()=>alert(lang==="uz"?`${name} integratsiyasi tez kunda o'rnatiladi. Iltimos karta orqali to'lovni tanlang.`:`Интеграция ${name} скоро будет подключена. Пожалуйста, оплатите картой.`)}>
+              <span className="pay-soon-logo">{name==="Click"?"C":"P"}</span>
+              <span>{name}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
     </div>
   );
 }
