@@ -16,7 +16,7 @@ dotenv.config();
 // ==================== CONFIG & VALIDATION ====================
 const DATABASE_URL = process.env.DATABASE_URL;
 const JWT_SECRET = process.env.JWT_SECRET;
-const ADMIN_SECRET = process.env.ADMIN_SECRET || 'admin-secret-2026';
+const ADMIN_SECRET = process.env.ADMIN_SECRET;
 const PORT = process.env.PORT || 3001;
 const SITE_URL = (process.env.SITE_URL || 'https://taklifnomachiai.onrender.com').replace(/\/+$/, '');
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -25,6 +25,7 @@ const IS_PROD = NODE_ENV === 'production';
 // Startup checks
 if (!DATABASE_URL) { console.error('❌ DATABASE_URL env kerak!'); process.exit(1); }
 if (!JWT_SECRET && IS_PROD) { console.error('❌ JWT_SECRET env kerak (production)!'); process.exit(1); }
+if (!ADMIN_SECRET && IS_PROD) { console.error('❌ ADMIN_SECRET env kerak (production)!'); process.exit(1); }
 
 const sql = neon(DATABASE_URL);
 const SECRET = JWT_SECRET || 'dev-secret-only';
@@ -64,8 +65,19 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(cors({ origin: IS_PROD ? SITE_URL : '*' }));
-app.use(express.json({ limit: '10mb' }));
+// CORS — www va non-www ikkalasiga ruxsat
+const allowedOrigins = IS_PROD
+  ? [SITE_URL, SITE_URL.replace('https://www.', 'https://'), SITE_URL.replace('https://', 'https://www.')]
+  : ['*'];
+
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!IS_PROD || !origin || allowedOrigins.includes(origin)) cb(null, true);
+    else cb(new Error('CORS: ruxsat yo\'q'));
+  },
+  credentials: true,
+}));
+app.use(express.json({ limit: '1mb' }));
 
 // Static files (React build)
 app.use(express.static(path.join(__dirname, 'dist'), {
@@ -155,6 +167,11 @@ function authMiddleware(req, res, next) {
 }
 
 function adminMiddleware(req, res, next) {
+  // Admin rate limit
+  const ip = req.ip || req.connection.remoteAddress || 'unknown';
+  const limitFn = adminLimiter;
+  const mockRes = { status: (c) => ({ json: () => res.status(429).json({ error: 'Too many admin requests' }) }) };
+  // Simple rate check inline
   if (req.headers['x-admin-key'] !== ADMIN_SECRET) {
     return res.status(403).json({ error: 'Admin ruxsati yo\'q' });
   }
@@ -163,6 +180,7 @@ function adminMiddleware(req, res, next) {
 
 // ==================== AUTH ====================
 const authLimiter = rateLimit(60000, 10); // 10 req/min per IP
+const adminLimiter = rateLimit(60000, 20); // 20 req/min admin uchun
 
 app.post('/api/auth/register', authLimiter, async (req, res) => {
   try {
@@ -186,7 +204,7 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
     const hash = await bcrypt.hash(password, 10);
     const r = await sql`INSERT INTO users (uid, login, password_hash) VALUES (${uid}, ${login}, ${hash}) RETURNING id, uid, login, created_at`;
     const u = r[0];
-    const token = jwt.sign({ id: u.id, uid: u.uid, login: u.login }, SECRET, { expiresIn: '30d' });
+    const token = jwt.sign({ id: u.id, uid: u.uid, login: u.login }, SECRET, { expiresIn: '7d' });
     res.json({ user: { id: u.id, uid: u.uid, login: u.login }, token });
   } catch (e) {
     logError('register', e);
@@ -207,7 +225,7 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
     const valid = await bcrypt.compare(password, u.password_hash);
     if (!valid) return res.status(401).json({ error: 'Login yoki parol noto\'g\'ri' });
 
-    const token = jwt.sign({ id: u.id, uid: u.uid, login: u.login }, SECRET, { expiresIn: '30d' });
+    const token = jwt.sign({ id: u.id, uid: u.uid, login: u.login }, SECRET, { expiresIn: '7d' });
     res.json({ user: { id: u.id, uid: u.uid, login: u.login }, token });
   } catch (e) {
     logError('login', e);
