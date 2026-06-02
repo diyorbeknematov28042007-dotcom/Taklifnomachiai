@@ -69,8 +69,19 @@ CREATE TABLE IF NOT EXISTS payments (
   amount INTEGER NOT NULL,
   status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending','paid','cancelled')),
   telegram_id BIGINT,
+  screenshot_base64 TEXT,
   created_at TIMESTAMP DEFAULT NOW(),
   paid_at TIMESTAMP
+);
+
+-- To'lov kartalari (admin boshqaradi)
+CREATE TABLE IF NOT EXISTS payment_cards (
+  id SERIAL PRIMARY KEY,
+  card_number VARCHAR(25) NOT NULL,
+  card_owner VARCHAR(100) NOT NULL,
+  card_type VARCHAR(20) NOT NULL CHECK (card_type IN ('HUMO','UzCard','Visa','MasterCard')),
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW()
 );
 
 -- Indekslar
@@ -82,6 +93,9 @@ CREATE INDEX idx_payments_code ON payments(code);
 CREATE INDEX idx_users_login ON users(login);
 CREATE INDEX idx_users_uid ON users(uid);
 CREATE INDEX idx_users_telegram ON users(telegram_id);
+CREATE INDEX idx_payments_status ON payments(status);
+CREATE INDEX idx_payments_invitation ON payments(invitation_id);
+CREATE INDEX idx_payment_cards_active ON payment_cards(is_active);
 
 -- Boshlang'ich shablonlar
 INSERT INTO templates (id, category, name_uz, name_ru, tag_uz, tag_ru, is_free, price, bg_style, accent_color, text_color, decoration, sample_data, sort_order) VALUES
