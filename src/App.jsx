@@ -154,22 +154,22 @@ function StatsPage() {
 
   return (
     <div style={{ padding: "20px" }}>
-      <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 20 }}><ChartIcon size={20} color="var(--purple)"/> {lang==="uz"?"Statistika":"Статистика"}</div>
+      <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 20 }}><ChartIcon size={20} color="#7c3aed"/> {lang==="uz"?"Statistika":"Статистика"}</div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         {[
           { i: "🎨", v: stats?.templates || "...", l: lang==="uz"?"Shablonlar":"Шаблоны" },
           { i: "🌐", v: stats?.uptime || "...", l: lang==="uz"?"Server uptime":"Аптайм" },
         ].map((s,i) => (
-          <div key={i} style={{ background:"var(--white)", borderRadius:14, padding:20, textAlign:"center", border:"1px solid var(--border)" }}>
+          <div key={i} style={{ background:"#ffffff", borderRadius:14, padding:20, textAlign:"center", border:"1px solid #ececf4" }}>
             <div style={{ fontSize:28, marginBottom:6 }}>{s.i}</div>
-            <div style={{ fontSize:24, fontWeight:800, color:"var(--purple)" }}>{s.v}</div>
-            <div style={{ fontSize:11, color:"var(--text3)", marginTop:4 }}>{s.l}</div>
+            <div style={{ fontSize:24, fontWeight:800, color:"#7c3aed" }}>{s.v}</div>
+            <div style={{ fontSize:11, color:"#9999b5", marginTop:4 }}>{s.l}</div>
           </div>
         ))}
       </div>
-      <div style={{ marginTop:20, padding:16, background:"var(--white)", borderRadius:14, border:"1px solid var(--border)" }}>
+      <div style={{ marginTop:20, padding:16, background:"#ffffff", borderRadius:14, border:"1px solid #ececf4" }}>
         <div style={{ fontSize:14, fontWeight:600, marginBottom:8 }}>ℹ️ {lang==="uz"?"Platforma haqida":"О платформе"}</div>
-        <div style={{ fontSize:13, color:"var(--text2)", lineHeight:1.6 }}>
+        <div style={{ fontSize:13, color:"#6b6b8d", lineHeight:1.6 }}>
           {lang==="uz"
             ? "Taklifnomachi.online — O'zbekistonda birinchi raqamli taklifnomalar platformasi. To'y, tug'ilgan kun, tadbir va dil izhorlari uchun zamonaviy taklifnomalar yarating."
             : "Taklifnomachi.online — первая платформа цифровых приглашений в Узбекистане."}
@@ -211,7 +211,7 @@ function FaqPage() {
       <div style={{ padding:"20px", marginTop:16 }}>
         <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>{lang==="uz"?"Qo\'shimcha yordam":"Дополнительная помощь"}</div>
         <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-          <a href="https://t.me/ndd_admin" target="_blank" rel="noopener" style={{ display:"flex", alignItems:"center", gap:10, padding:12, background:"var(--white)", borderRadius:12, border:"1px solid var(--border)", textDecoration:"none", color:"var(--text)", fontSize:14, fontWeight:500 }}>
+          <a href="https://t.me/ndd_admin" target="_blank" rel="noopener" style={{ display:"flex", alignItems:"center", gap:10, padding:12, background:"#ffffff", borderRadius:12, border:"1px solid #ececf4", textDecoration:"none", color:"#1a1a2e", fontSize:14, fontWeight:500 }}>
             👤 {lang==="uz"?"Admin bilan bog\'lanish":"Связаться с админом"}
           </a>
 
@@ -223,7 +223,7 @@ function FaqPage() {
 
 function NotFound() {
   const { t } = useApp();
-  return <div style={{textAlign:"center",padding:"60px 20px"}}><div style={{fontSize:48,marginBottom:12}}>😔</div><div style={{fontSize:16,fontWeight:600,color:"var(--text2)"}}>Sahifa topilmadi</div><Link to="/" style={{color:"var(--purple)",fontSize:14,marginTop:12,display:"inline-block"}}>← Bosh sahifa</Link></div>;
+  return <div style={{textAlign:"center",padding:"60px 20px"}}><div style={{fontSize:48,marginBottom:12}}>😔</div><div style={{fontSize:16,fontWeight:600,color:"#6b6b8d"}}>Sahifa topilmadi</div><Link to="/" style={{color:"#7c3aed",fontSize:14,marginTop:12,display:"inline-block"}}>← Bosh sahifa</Link></div>;
 }
 
 // ==================== HEADER ====================
@@ -466,7 +466,7 @@ function TemplatesPage() {
   return (
     <div>
       <div className="sec-hdr"><div className="sec-title">{cn[cat]} — {t.selectTemplate}</div></div>
-      {tpls.length === 0 ? <div style={{textAlign:"center",padding:"40px 20px",color:"var(--text2)",fontSize:14}}>Hozircha shablonlar yo'q. Admin paneldan qo'shing.</div>
+      {tpls.length === 0 ? <div style={{textAlign:"center",padding:"40px 20px",color:"#6b6b8d",fontSize:14}}>Hozircha shablonlar yo'q. Admin paneldan qo'shing.</div>
         : <div className="tpl-grid">{tpls.map(tp => <TplCard key={tp.id} tp={tp} />)}</div>}
     </div>
   );
@@ -522,17 +522,17 @@ function PreviewPage() {
   return (
     <div>
       {/* Preview header */}
-      <div style={{ padding:"12px 20px", background:"var(--white)", borderBottom:"1px solid var(--border)", display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:52, zIndex:10 }}>
+      <div style={{ padding:"12px 20px", background:"#ffffff", borderBottom:"1px solid #ececf4", display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:52, zIndex:10 }}>
         <div>
           <div style={{ fontSize:14, fontWeight:600 }}>{name}</div>
-          <div style={{ fontSize:11, color:"var(--text3)" }}>{tag} • {tpl.is_free ? (lang==="uz"?"Bepul":"Бесплатно") : tpl.price?.toLocaleString() + " so\'m"}</div>
+          <div style={{ fontSize:11, color:"#9999b5" }}>{tag} • {tpl.is_free ? (lang==="uz"?"Bepul":"Бесплатно") : tpl.price?.toLocaleString() + " so\'m"}</div>
         </div>
         <button onClick={() => {
           if (!user) navigate(`/auth?redirect=/create/${tpl.category}/${tpl.id}`);
           else navigate(`/create/${tpl.category}/${tpl.id}`);
         }} style={{
           padding:"10px 20px", borderRadius:10, border:"none",
-          background:"var(--purple)", color:"#fff",
+          background:"#7c3aed", color:"#fff",
           fontFamily:"Inter,sans-serif", fontSize:13, fontWeight:600, cursor:"pointer",
         }}><SparkleIcon size={14} color="#fff"/> {t.create}</button>
       </div>
@@ -587,7 +587,7 @@ function AuthPage() {
         <div className="fg"><label>{t.password}</label><input className="fi" type="password" value={pw} onChange={e=>setPw(e.target.value)} placeholder={t.password}/></div>
         {mode==="register"&&<div className="fg"><label>{t.confirmPassword}</label><input className="fi" type="password" value={pw2} onChange={e=>setPw2(e.target.value)} placeholder={t.confirmPassword}/></div>}
         {err&&<div className="form-err">⚠️ {err}</div>}
-        {sugs.length>0&&<div style={{marginTop:8}}><div style={{fontSize:11,color:"var(--text2)",marginBottom:6}}>{t.suggestions}:</div><div className="form-suggest">{sugs.map(s=><button key={s} className="suggest-chip" onClick={()=>setLogin(s)}>{s}</button>)}</div></div>}
+        {sugs.length>0&&<div style={{marginTop:8}}><div style={{fontSize:11,color:"#6b6b8d",marginBottom:6}}>{t.suggestions}:</div><div className="form-suggest">{sugs.map(s=><button key={s} className="suggest-chip" onClick={()=>setLogin(s)}>{s}</button>)}</div></div>}
         <button className="main-btn" onClick={submit} disabled={busy}>{busy?"...":mode==="login"?t.loginBtn:t.registerBtn}</button>
         <div className="auth-sw">{mode==="login"?t.noAccount:t.hasAccount}{" "}<button onClick={()=>{setMode(m=>m==="login"?"register":"login");setErr("");setSugs([])}}>{mode==="login"?t.registerBtn:t.loginBtn}</button></div>
 
@@ -652,7 +652,7 @@ function FormPage() {
 function QRCode({ text, size = 160 }) {
   // Simple QR via external API
   const url = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}&bgcolor=ffffff&color=7c3aed&margin=8`;
-  return <img src={url} alt="QR Code" style={{ width: size, height: size, borderRadius: 12, border: "1px solid var(--border)" }} />;
+  return <img src={url} alt="QR Code" style={{ width: size, height: size, borderRadius: 12, border: "1px solid #ececf4" }} />;
 }
 
 // ==================== SHARE ====================
@@ -721,7 +721,7 @@ function SharePage() {
   if (inv.is_free && inv.link) {
     return (
       <div className="share-card fu">
-        <div style={{fontSize:48,marginBottom:12}}><SparkleIcon size={48} color="var(--purple)"/></div>
+        <div style={{fontSize:48,marginBottom:12}}><SparkleIcon size={48} color="#7c3aed"/></div>
         <h3>{t.readyTitle}</h3>
         <div className="sub">{t.readySub}</div>
         <div className="link-box">{inv.link}</div>
@@ -732,15 +732,15 @@ function SharePage() {
           <button className="share-btn wa" onClick={()=>window.open(`https://wa.me/?text=${encodeURIComponent(inv.link)}`)}>💬 {t.shareWhatsapp}</button>
           <button className="share-btn tg" onClick={()=>window.open(`https://t.me/share/url?url=${encodeURIComponent(inv.link)}`)}><TgIcon color="#fff"/> {t.shareTelegram}</button>
         </div>
-        {navigator.share&&<button onClick={()=>nativeShare(inv.link)} style={{width:"100%",padding:14,borderRadius:12,border:"1.5px solid var(--border)",background:"var(--white)",fontFamily:"Inter,sans-serif",fontSize:14,fontWeight:600,cursor:"pointer",marginTop:8,color:"var(--text1)"}}>📤 {lang==="uz"?"Boshqa ilovalar orqali":"Через другие приложения"}</button>}
+        {navigator.share&&<button onClick={()=>nativeShare(inv.link)} style={{width:"100%",padding:14,borderRadius:12,border:"1.5px solid #ececf4",background:"#ffffff",fontFamily:"Inter,sans-serif",fontSize:14,fontWeight:600,cursor:"pointer",marginTop:8,color:"#1a1a2e"}}>📤 {lang==="uz"?"Boshqa ilovalar orqali":"Через другие приложения"}</button>}
         <div style={{marginTop:20,textAlign:"center"}}>
-          <button onClick={()=>setShowQR(!showQR)} style={{background:"none",border:"none",color:"var(--purple)",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}}>
+          <button onClick={()=>setShowQR(!showQR)} style={{background:"none",border:"none",color:"#7c3aed",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}}>
             {showQR?"🔼 QR yashirish":"🔽 QR kod ko'rsatish"}
           </button>
-          {showQR&&<div style={{marginTop:12,display:"flex",flexDirection:"column",alignItems:"center",gap:8}}><QRCode text={inv.link}/><div style={{fontSize:11,color:"var(--text3)"}}>QR kodni skanerlang</div></div>}
+          {showQR&&<div style={{marginTop:12,display:"flex",flexDirection:"column",alignItems:"center",gap:8}}><QRCode text={inv.link}/><div style={{fontSize:11,color:"#9999b5"}}>QR kodni skanerlang</div></div>}
         </div>
         <div style={{marginTop:16}}>
-          <button onClick={()=>window.open(inv.link,"_blank")} style={{width:"100%",padding:12,borderRadius:10,border:"1px solid var(--border)",background:"var(--bg)",fontFamily:"Inter,sans-serif",fontSize:13,cursor:"pointer",color:"var(--text2)"}}>
+          <button onClick={()=>window.open(inv.link,"_blank")} style={{width:"100%",padding:12,borderRadius:10,border:"1px solid #ececf4",background:"#f7f7fb",fontFamily:"Inter,sans-serif",fontSize:13,cursor:"pointer",color:"#6b6b8d"}}>
             👁 {lang==="uz"?"Taklifnomani ko'rish":"Просмотреть приглашение"}
           </button>
         </div>
@@ -764,16 +764,16 @@ function SharePage() {
         <div style={{textAlign:"center",marginBottom:24}}>
           <div style={{width:64,height:64,borderRadius:"50%",background:"linear-gradient(135deg,#22c55e,#16a34a)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 12px",fontSize:28,color:"#fff"}}>✓</div>
           <h3 style={{color:"#16a34a",fontSize:18,margin:"0 0 6px"}}>{lang==="uz"?"To'lov tasdiqlandi!":"Оплата подтверждена!"}</h3>
-          <div style={{fontSize:13,color:"var(--text2)"}}>{lang==="uz"?"Endi maxsus link nomini tanlang":"Выберите персональное имя ссылки"}</div>
+          <div style={{fontSize:13,color:"#6b6b8d"}}>{lang==="uz"?"Endi maxsus link nomini tanlang":"Выберите персональное имя ссылки"}</div>
         </div>
-        <div style={{borderTop:"1px solid var(--border)",paddingTop:20}}>
+        <div style={{borderTop:"1px solid #ececf4",paddingTop:20}}>
           <label style={{fontSize:13,fontWeight:700,display:"block",marginBottom:6}}>{t.customLink}</label>
-          <div style={{fontSize:11,color:"var(--text2)",marginBottom:10}}>{t.customLinkHint}</div>
+          <div style={{fontSize:11,color:"#6b6b8d",marginBottom:10}}>{t.customLinkHint}</div>
           <div className="slug-row">
             <div className="slug-pre">taklifnomachi.online/v/</div>
             <input className="slug-inp" value={slug} onChange={e=>setSlug(e.target.value.replace(/[^a-zA-Z0-9-]/g,"").slice(0,30))} placeholder="dilnoza-javohir"/>
           </div>
-          <div style={{fontSize:11,color:"var(--text3)",marginTop:6,padding:"0 2px"}}>
+          <div style={{fontSize:11,color:"#9999b5",marginTop:6,padding:"0 2px"}}>
             🔗 https://taklifnomachi.online/v/<strong>{slug||"dilnoza-javohir"}</strong>
           </div>
           <button className="main-btn" style={{marginTop:12}} disabled={slug.length<3} onClick={async()=>{
@@ -800,8 +800,8 @@ function SharePage() {
 
       {/* Narx */}
       <div style={{textAlign:"center",marginBottom:20}}>
-        <div style={{fontSize:13,color:"var(--text2)",marginBottom:4}}>{lang==="uz"?"Premium shablon":"Премиум шаблон"}</div>
-        <div style={{fontSize:32,fontWeight:800,color:"var(--text1)",letterSpacing:-1}}>{inv.price?.toLocaleString()} <span style={{fontSize:16,fontWeight:500}}>so'm</span></div>
+        <div style={{fontSize:13,color:"#6b6b8d",marginBottom:4}}>{lang==="uz"?"Premium shablon":"Премиум шаблон"}</div>
+        <div style={{fontSize:32,fontWeight:800,color:"#1a1a2e",letterSpacing:-1}}>{inv.price?.toLocaleString()} <span style={{fontSize:16,fontWeight:500}}>so'm</span></div>
       </div>
 
       {/* ── 1. BANK KARTA — bir qatorda, haqiqiy karta formatda ── */}
@@ -890,7 +890,7 @@ function SharePage() {
 
       {/* Admin */}
       <div className="pay-admin-row">
-        <span style={{fontSize:12,color:"var(--text2)"}}>{lang==="uz"?"Savol bor?":"Есть вопросы?"}</span>
+        <span style={{fontSize:12,color:"#6b6b8d"}}>{lang==="uz"?"Savol bor?":"Есть вопросы?"}</span>
         <a href="https://t.me/ndd_admin" target="_blank" rel="noopener noreferrer" className="pay-admin-link">
           <span>{lang==="uz"?"Admin bilan bog'lanish":"Написать администратору"}</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -932,8 +932,8 @@ function ViewInvPage() {
   if (err) return (
     <div style={{textAlign:"center",padding:"60px 20px"}}>
       <div style={{fontSize:48,marginBottom:12}}>😔</div>
-      <div style={{fontSize:16,fontWeight:600,color:"var(--text2)"}}>{lang==="uz"?"Taklifnoma topilmadi":"Приглашение не найдено"}</div>
-      <Link to="/" style={{color:"var(--purple)",fontSize:14,marginTop:12,display:"inline-block"}}>← {lang==="uz"?"Bosh sahifa":"Главная"}</Link>
+      <div style={{fontSize:16,fontWeight:600,color:"#6b6b8d"}}>{lang==="uz"?"Taklifnoma topilmadi":"Приглашение не найдено"}</div>
+      <Link to="/" style={{color:"#7c3aed",fontSize:14,marginTop:12,display:"inline-block"}}>← {lang==="uz"?"Bosh sahifa":"Главная"}</Link>
     </div>
   );
   if (!inv) return <div className="loading">{t.loading}</div>;
@@ -960,7 +960,7 @@ function ViewInvPage() {
   return (
     <div style={{textAlign:"center",padding:"60px 20px"}}>
       <div style={{fontSize:48,marginBottom:12}}>📄</div>
-      <div style={{fontSize:16,fontWeight:600,color:"var(--text2)"}}>{lang==="uz"?"Shablon topilmadi":"Шаблон не найден"}</div>
+      <div style={{fontSize:16,fontWeight:600,color:"#6b6b8d"}}>{lang==="uz"?"Shablon topilmadi":"Шаблон не найден"}</div>
     </div>
   );
 }
@@ -1013,14 +1013,14 @@ function ProfilePage() {
       {/* Mini stats */}
       <div style={{ display: "flex", gap: 8, padding: "0 20px", marginBottom: 20 }}>
         {[
-          { v: total, l: lang === "uz" ? "Taklifnomalar" : "Приглашения", i: <MailIcon size={20} color="var(--purple)"/> },
-          { v: totalResp, l: lang === "uz" ? "Javoblar" : "Ответы", i: <MessageIcon size={20} color="var(--purple)"/> },
-          { v: totalViews, l: lang === "uz" ? "Ko\'rishlar" : "Просмотры", i: <EyeIcon size={20} color="var(--purple)"/> },
+          { v: total, l: lang === "uz" ? "Taklifnomalar" : "Приглашения", i: <MailIcon size={20} color="#7c3aed"/> },
+          { v: totalResp, l: lang === "uz" ? "Javoblar" : "Ответы", i: <MessageIcon size={20} color="#7c3aed"/> },
+          { v: totalViews, l: lang === "uz" ? "Ko\'rishlar" : "Просмотры", i: <EyeIcon size={20} color="#7c3aed"/> },
         ].map((s, i) => (
-          <div key={i} style={{ flex: 1, background: "var(--white)", borderRadius: 12, padding: "14px 10px", textAlign: "center", boxShadow: "var(--shadow)" }}>
+          <div key={i} style={{ flex: 1, background: "#ffffff", borderRadius: 12, padding: "14px 10px", textAlign: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
             <div style={{ fontSize: 20 }}>{s.i}</div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: "var(--purple)" }}>{s.v}</div>
-            <div style={{ fontSize: 10, color: "var(--text3)", marginTop: 2 }}>{s.l}</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: "#7c3aed" }}>{s.v}</div>
+            <div style={{ fontSize: 10, color: "#9999b5", marginTop: 2 }}>{s.l}</div>
           </div>
         ))}
       </div>
@@ -1050,7 +1050,7 @@ function ProfilePage() {
             {!inv.is_free && !inv.is_paid && <span style={{ fontSize: 10, background: "#fef3c7", color: "#92400e", padding: "2px 6px", borderRadius: 4, fontWeight: 600 }}><WalletIcon size={10} color="#92400e"/> {lang === "uz" ? "To\'lov kutilmoqda" : "Ожидает оплаты"}</span>}
           </div>
           <div className="inv-item-title">{getTitle(inv)}</div>
-          <div style={{ display: "flex", gap: 12, marginTop: 6, fontSize: 11, color: "var(--text3)" }}>
+          <div style={{ display: "flex", gap: 12, marginTop: 6, fontSize: 11, color: "#9999b5" }}>
             <span><CalendarIcon size={12}/> {new Date(inv.created_at).toLocaleDateString()}</span>
             {inv.response_count > 0 && <span><MessageIcon size={12}/> {inv.response_count}</span>}
             {inv.views > 0 && <span><EyeIcon size={12}/> {inv.views}</span>}
@@ -1096,15 +1096,15 @@ function ProfileInvPage() {
     <div style={{ padding: "16px 20px 30px" }}>
       {/* Header card */}
       <div className="form-card fu" style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 11, color: "var(--purple)", fontWeight: 700, textTransform: "uppercase", letterSpacing: .5 }}>{cn[inv.category]}</div>
+        <div style={{ fontSize: 11, color: "#7c3aed", fontWeight: 700, textTransform: "uppercase", letterSpacing: .5 }}>{cn[inv.category]}</div>
         <div style={{ fontSize: 18, fontWeight: 700, marginTop: 6 }}>{title}</div>
         {inv.link && (<>
           <div className="link-box" style={{ marginTop: 12, fontSize: 11 }}>{inv.link}</div>
           <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-            <button onClick={copyLink} style={{ flex: 1, padding: "10px 12px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--bg)", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "Inter,sans-serif" }}>
+            <button onClick={copyLink} style={{ flex: 1, padding: "10px 12px", borderRadius: 8, border: "1px solid #ececf4", background: "#f7f7fb", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "Inter,sans-serif" }}>
               {copied ? "✅" : "📋"} {copied ? (lang === "uz" ? "Nusxalandi" : "Скопировано") : (lang === "uz" ? "Nusxalash" : "Скопировать")}
             </button>
-            <button onClick={() => window.open(inv.link, "_blank")} style={{ flex: 1, padding: "10px 12px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--bg)", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "Inter,sans-serif" }}>
+            <button onClick={() => window.open(inv.link, "_blank")} style={{ flex: 1, padding: "10px 12px", borderRadius: 8, border: "1px solid #ececf4", background: "#f7f7fb", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "Inter,sans-serif" }}>
               👁 {lang === "uz" ? "Ko\'rish" : "Открыть"}
             </button>
           </div>
@@ -1113,7 +1113,7 @@ function ProfileInvPage() {
             <button onClick={() => window.open(`https://t.me/share/url?url=${encodeURIComponent(inv.link)}`)} style={{ flex: 1, padding: "10px 12px", borderRadius: 8, border: "none", background: "#0088cc", color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "Inter,sans-serif" }}><TgIcon color="#fff"/> Telegram</button>
           </div>
         </>)}
-        {inv.views > 0 && <div style={{ fontSize: 12, color: "var(--text3)", marginTop: 12 }}>👁 {inv.views} {lang === "uz" ? "marta ko\'rildi" : "просмотров"}</div>}
+        {inv.views > 0 && <div style={{ fontSize: 12, color: "#9999b5", marginTop: 12 }}>👁 {inv.views} {lang === "uz" ? "marta ko\'rildi" : "просмотров"}</div>}
       </div>
 
       {/* RSVP Stats */}
@@ -1122,9 +1122,9 @@ function ProfileInvPage() {
           <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}><ChartIcon size={16}/> {lang === "uz" ? "RSVP statistika" : "Статистика RSVP"}</div>
           <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
             {[
-              { v: attending, l: lang === "uz" ? "Keladi" : "Придут", c: "var(--green)", bg: "#ecfdf5" },
-              { v: notAttending, l: lang === "uz" ? "Kelmaydi" : "Не придут", c: "var(--red)", bg: "#fef2f2" },
-              { v: maybe, l: lang === "uz" ? "Bilmaydi" : "Не уверены", c: "var(--orange)", bg: "#fffbeb" },
+              { v: attending, l: lang === "uz" ? "Keladi" : "Придут", c: "#10b981", bg: "#ecfdf5" },
+              { v: notAttending, l: lang === "uz" ? "Kelmaydi" : "Не придут", c: "#ef4444", bg: "#fef2f2" },
+              { v: maybe, l: lang === "uz" ? "Bilmaydi" : "Не уверены", c: "#f59e0b", bg: "#fffbeb" },
             ].map((s, i) => (
               <div key={i} style={{ flex: 1, background: s.bg, borderRadius: 10, padding: "10px 8px", textAlign: "center" }}>
                 <div style={{ fontSize: 20, fontWeight: 800, color: s.c }}>{s.v}</div>
@@ -1133,16 +1133,16 @@ function ProfileInvPage() {
             ))}
           </div>
           {totalGuests > 0 && (
-            <div style={{ background: "var(--bg)", borderRadius: 8, padding: "10px 12px", fontSize: 13, textAlign: "center" }}>
-              <UsersIcon size={14}/> {lang === "uz" ? "Jami mehmonlar" : "Всего гостей"}: <b style={{ color: "var(--purple)" }}>{totalGuests}</b>
+            <div style={{ background: "#f7f7fb", borderRadius: 8, padding: "10px 12px", fontSize: 13, textAlign: "center" }}>
+              <UsersIcon size={14}/> {lang === "uz" ? "Jami mehmonlar" : "Всего гостей"}: <b style={{ color: "#7c3aed" }}>{totalGuests}</b>
             </div>
           )}
           {/* Mini bar chart */}
           {resps.length > 0 && (
-            <div style={{ display: "flex", height: 8, borderRadius: 4, overflow: "hidden", marginTop: 10, background: "var(--bg)" }}>
-              {attending > 0 && <div style={{ width: (attending / resps.length * 100) + "%", background: "var(--green)" }} />}
-              {maybe > 0 && <div style={{ width: (maybe / resps.length * 100) + "%", background: "var(--orange)" }} />}
-              {notAttending > 0 && <div style={{ width: (notAttending / resps.length * 100) + "%", background: "var(--red)" }} />}
+            <div style={{ display: "flex", height: 8, borderRadius: 4, overflow: "hidden", marginTop: 10, background: "#f7f7fb" }}>
+              {attending > 0 && <div style={{ width: (attending / resps.length * 100) + "%", background: "#10b981" }} />}
+              {maybe > 0 && <div style={{ width: (maybe / resps.length * 100) + "%", background: "#f59e0b" }} />}
+              {notAttending > 0 && <div style={{ width: (notAttending / resps.length * 100) + "%", background: "#ef4444" }} />}
             </div>
           )}
         </div>
@@ -1160,12 +1160,12 @@ function ProfileInvPage() {
         <div key={r.id} className="inv-item" style={{ margin: "0 0 10px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             {r.sender_name && <div style={{ fontSize: 14, fontWeight: 600 }}>{r.sender_name}</div>}
-            <div style={{ fontSize: 11, color: "var(--text3)" }}>{new Date(r.created_at).toLocaleDateString()}</div>
+            <div style={{ fontSize: 11, color: "#9999b5" }}>{new Date(r.created_at).toLocaleDateString()}</div>
           </div>
-          {r.rsvp && <div style={{ fontSize: 12, fontWeight: 700, color: r.rsvp === "attending" ? "var(--green)" : r.rsvp === "notAttending" ? "var(--red)" : "var(--orange)", marginTop: 4 }}>
+          {r.rsvp && <div style={{ fontSize: 12, fontWeight: 700, color: r.rsvp === "attending" ? "#10b981" : r.rsvp === "notAttending" ? "#ef4444" : "#f59e0b", marginTop: 4 }}>
             {t[r.rsvp]} {r.guest_count > 1 && `(${r.guest_count} ${lang === "uz" ? "kishi" : "чел."})`}
           </div>}
-          {r.message && <div style={{ fontSize: 14, marginTop: 6, color: "var(--text2)" }}>{r.message}</div>}
+          {r.message && <div style={{ fontSize: 14, marginTop: 6, color: "#6b6b8d" }}>{r.message}</div>}
         </div>
       ))}
     </div>
@@ -1277,7 +1277,7 @@ function AdminPage() {
       {/* Tablar */}
       <div style={{display:"flex",gap:6,marginBottom:20,flexWrap:"wrap"}}>
         {tabItems.map(tb=>(
-          <button key={tb.id} onClick={()=>setTab(tb.id)} style={{padding:"8px 14px",borderRadius:8,border:"none",background:tab===tb.id?"var(--purple)":"var(--bg)",color:tab===tb.id?"#fff":"var(--text2)",fontFamily:"Inter,sans-serif",fontSize:12,fontWeight:600,cursor:"pointer"}}>
+          <button key={tb.id} onClick={()=>setTab(tb.id)} style={{padding:"8px 14px",borderRadius:8,border:"none",background:tab===tb.id?"#7c3aed":"#f7f7fb",color:tab===tb.id?"#fff":"#6b6b8d",fontFamily:"Inter,sans-serif",fontSize:12,fontWeight:600,cursor:"pointer"}}>
             {tb.icon} {tb.label}
           </button>
         ))}
@@ -1293,10 +1293,10 @@ function AdminPage() {
             {l:"To'lovlar",v:stats.paidPayments,i:"💰"},
             {l:"Daromad",v:(stats.revenue||0).toLocaleString()+" so'm",i:"💵"},
           ].map((s,i)=>(
-            <div key={i} style={{background:"var(--white)",borderRadius:12,padding:16,boxShadow:"var(--shadow)"}}>
+            <div key={i} style={{background:"#ffffff",borderRadius:12,padding:16,boxShadow:"0 2px 12px rgba(0,0,0,0.06)"}}>
               <div style={{fontSize:24,marginBottom:4}}>{s.i}</div>
               <div style={{fontSize:22,fontWeight:800}}>{s.v}</div>
-              <div style={{fontSize:11,color:"var(--text2)",marginTop:2}}>{s.l}</div>
+              <div style={{fontSize:11,color:"#6b6b8d",marginTop:2}}>{s.l}</div>
             </div>
           ))}
         </div>
@@ -1305,7 +1305,7 @@ function AdminPage() {
       {/* KARTALAR */}
       {tab==="cards"&&(
         <div>
-          <div style={{background:"var(--white)",borderRadius:16,padding:20,marginBottom:16,boxShadow:"var(--shadow)"}}>
+          <div style={{background:"#ffffff",borderRadius:16,padding:20,marginBottom:16,boxShadow:"0 2px 12px rgba(0,0,0,0.06)"}}>
             <div style={{fontSize:15,fontWeight:700,marginBottom:14}}>💳 Yangi karta qo'shish</div>
             <div className="fg"><label>Karta raqami</label><input className="fi" value={newCard.card_number} onChange={e=>setNewCard(p=>({...p,card_number:e.target.value}))} placeholder="8600 1234 5678 9012"/></div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
@@ -1316,19 +1316,19 @@ function AdminPage() {
                 </select>
               </div>
             </div>
-            {cardMsg&&<div style={{fontSize:13,marginTop:8,color:cardMsg.startsWith("✅")?"var(--green)":"var(--red)"}}>{cardMsg}</div>}
+            {cardMsg&&<div style={{fontSize:13,marginTop:8,color:cardMsg.startsWith("✅")?"#10b981":"#ef4444"}}>{cardMsg}</div>}
             <button className="main-btn" style={{marginTop:12}} onClick={saveCard} disabled={cardSaving}>
               {cardSaving?"Saqlanmoqda...":"💾 Saqlash (avvalgisi nofaol bo'ladi)"}
             </button>
           </div>
           <div style={{fontSize:14,fontWeight:700,marginBottom:10}}>Barcha kartalar</div>
-          {cards.length===0?<div style={{textAlign:"center",color:"var(--text2)",padding:20}}>Karta yo'q</div>:cards.map(c=>(
-            <div key={c.id} style={{background:"var(--white)",borderRadius:12,padding:14,marginBottom:8,boxShadow:"var(--shadow)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          {cards.length===0?<div style={{textAlign:"center",color:"#6b6b8d",padding:20}}>Karta yo'q</div>:cards.map(c=>(
+            <div key={c.id} style={{background:"#ffffff",borderRadius:12,padding:14,marginBottom:8,boxShadow:"0 2px 12px rgba(0,0,0,0.06)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <div>
                 <div style={{fontSize:14,fontWeight:700,fontFamily:"monospace",letterSpacing:1}}>{c.card_number}</div>
-                <div style={{fontSize:11,color:"var(--text2)",marginTop:3}}>{c.card_owner} • {c.card_type} • {c.is_active?"✅ Aktiv":"⚫ Nofaol"}</div>
+                <div style={{fontSize:11,color:"#6b6b8d",marginTop:3}}>{c.card_owner} • {c.card_type} • {c.is_active?"✅ Aktiv":"⚫ Nofaol"}</div>
               </div>
-              <button onClick={()=>deleteCard(c.id)} style={{padding:"6px 12px",borderRadius:6,border:"1px solid #fecaca",background:"#fef2f2",color:"var(--red)",fontSize:11,cursor:"pointer",fontFamily:"Inter"}}>🗑</button>
+              <button onClick={()=>deleteCard(c.id)} style={{padding:"6px 12px",borderRadius:6,border:"1px solid #fecaca",background:"#fef2f2",color:"#ef4444",fontSize:11,cursor:"pointer",fontFamily:"Inter"}}>🗑</button>
             </div>
           ))}
         </div>
@@ -1338,20 +1338,20 @@ function AdminPage() {
       {tab==="payments"&&(
         <div>
           <div style={{fontSize:14,fontWeight:700,marginBottom:12}}>💰 To'lovlar — {payments.length} ta</div>
-          {payments.length===0?<div style={{textAlign:"center",color:"var(--text2)",padding:20}}>To'lovlar yo'q</div>:payments.map(p=>(
-            <div key={p.id} style={{background:"var(--white)",borderRadius:14,padding:16,marginBottom:10,boxShadow:"var(--shadow)"}}>
+          {payments.length===0?<div style={{textAlign:"center",color:"#6b6b8d",padding:20}}>To'lovlar yo'q</div>:payments.map(p=>(
+            <div key={p.id} style={{background:"#ffffff",borderRadius:14,padding:16,marginBottom:10,boxShadow:"0 2px 12px rgba(0,0,0,0.06)"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
                 <div>
                   <div style={{fontSize:14,fontWeight:700}}>👤 {p.user_login}</div>
-                  <div style={{fontSize:11,color:"var(--text2)",marginTop:2}}>{p.category} • {p.inv_uid}</div>
+                  <div style={{fontSize:11,color:"#6b6b8d",marginTop:2}}>{p.category} • {p.inv_uid}</div>
                 </div>
                 <div style={{fontSize:11,padding:"4px 10px",borderRadius:20,background:p.status==="paid"?"#dcfce7":"#fef3c7",color:p.status==="paid"?"#16a34a":"#92400e",fontWeight:700}}>
                   {p.status==="paid"?"✅ To'langan":"⏳ Kutilmoqda"}
                 </div>
               </div>
-              {p.paid_at&&<div style={{fontSize:11,color:"var(--text3)",marginBottom:8}}>📅 {new Date(p.paid_at).toLocaleString("uz")}</div>}
+              {p.paid_at&&<div style={{fontSize:11,color:"#9999b5",marginBottom:8}}>📅 {new Date(p.paid_at).toLocaleString("uz")}</div>}
               {p.screenshot_base64&&(
-                <button onClick={()=>setShowScreenshot(p.screenshot_base64)} style={{display:"flex",alignItems:"center",gap:6,padding:"8px 14px",borderRadius:8,border:"1px solid var(--border)",background:"var(--bg)",fontSize:12,cursor:"pointer",fontFamily:"Inter",color:"var(--purple)",fontWeight:600}}>
+                <button onClick={()=>setShowScreenshot(p.screenshot_base64)} style={{display:"flex",alignItems:"center",gap:6,padding:"8px 14px",borderRadius:8,border:"1px solid #ececf4",background:"#f7f7fb",fontSize:12,cursor:"pointer",fontFamily:"Inter",color:"#7c3aed",fontWeight:600}}>
                   📸 Screenshotni ko'rish
                 </button>
               )}
@@ -1366,14 +1366,14 @@ function AdminPage() {
           <button className="main-btn" style={{marginBottom:16}} onClick={()=>{setNewTpl(true);setEditTpl(null)}}>+ Yangi shablon</button>
           {(newTpl||editTpl)&&<TplForm tpl={editTpl} hdrs={hdrs} onDone={()=>{setNewTpl(false);setEditTpl(null);loadAll()}} onCancel={()=>{setNewTpl(false);setEditTpl(null)}}/>}
           {tpls.map(tp=>(
-            <div key={tp.id} style={{background:"var(--white)",borderRadius:12,padding:14,marginBottom:8,boxShadow:"var(--shadow)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div key={tp.id} style={{background:"#ffffff",borderRadius:12,padding:14,marginBottom:8,boxShadow:"0 2px 12px rgba(0,0,0,0.06)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <div>
                 <div style={{fontSize:13,fontWeight:600}}>{tp.name_uz}</div>
-                <div style={{fontSize:11,color:"var(--text2)"}}>{tp.category} • {tp.is_free?"Bepul":tp.price?.toLocaleString()+" so'm"} • {tp.is_active?"✅ Faol":"❌ Nofaol"}</div>
+                <div style={{fontSize:11,color:"#6b6b8d"}}>{tp.category} • {tp.is_free?"Bepul":tp.price?.toLocaleString()+" so'm"} • {tp.is_active?"✅ Faol":"❌ Nofaol"}</div>
               </div>
               <div style={{display:"flex",gap:6}}>
-                <button onClick={()=>{setEditTpl(tp);setNewTpl(false)}} style={{padding:"6px 12px",borderRadius:6,border:"1px solid var(--border)",background:"var(--bg)",fontSize:11,cursor:"pointer",fontFamily:"Inter"}}>✏️</button>
-                <button onClick={async()=>{if(confirm("O'chirish?")){await fetch(`/api/admin/templates/${tp.id}`,{method:"DELETE",headers:hdrs()});loadAll()}}} style={{padding:"6px 12px",borderRadius:6,border:"1px solid #fecaca",background:"#fef2f2",color:"var(--red)",fontSize:11,cursor:"pointer",fontFamily:"Inter"}}>🗑</button>
+                <button onClick={()=>{setEditTpl(tp);setNewTpl(false)}} style={{padding:"6px 12px",borderRadius:6,border:"1px solid #ececf4",background:"#f7f7fb",fontSize:11,cursor:"pointer",fontFamily:"Inter"}}>✏️</button>
+                <button onClick={async()=>{if(confirm("O'chirish?")){await fetch(`/api/admin/templates/${tp.id}`,{method:"DELETE",headers:hdrs()});loadAll()}}} style={{padding:"6px 12px",borderRadius:6,border:"1px solid #fecaca",background:"#fef2f2",color:"#ef4444",fontSize:11,cursor:"pointer",fontFamily:"Inter"}}>🗑</button>
               </div>
             </div>
           ))}
@@ -1384,19 +1384,19 @@ function AdminPage() {
       {tab==="users"&&(
         <div>
           <div style={{fontSize:14,fontWeight:700,marginBottom:12}}>👥 Foydalanuvchilar — {users.length} ta</div>
-          {users.length===0?<div style={{textAlign:"center",color:"var(--text2)",padding:20}}>Foydalanuvchilar yo'q</div>:users.map(u=>(
-            <div key={u.id} style={{background:"var(--white)",borderRadius:12,padding:14,marginBottom:8,boxShadow:"var(--shadow)"}}>
+          {users.length===0?<div style={{textAlign:"center",color:"#6b6b8d",padding:20}}>Foydalanuvchilar yo'q</div>:users.map(u=>(
+            <div key={u.id} style={{background:"#ffffff",borderRadius:12,padding:14,marginBottom:8,boxShadow:"0 2px 12px rgba(0,0,0,0.06)"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
                 <div style={{fontSize:14,fontWeight:700}}>👤 {u.login}</div>
-                <div style={{fontSize:11,color:"var(--text3)"}}>{new Date(u.created_at).toLocaleDateString()}</div>
+                <div style={{fontSize:11,color:"#9999b5"}}>{new Date(u.created_at).toLocaleDateString()}</div>
               </div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
-                <div style={{background:"var(--bg)",borderRadius:8,padding:"8px 10px"}}>
-                  <div style={{fontSize:10,color:"var(--text3)",marginBottom:2}}>LOGIN</div>
+                <div style={{background:"#f7f7fb",borderRadius:8,padding:"8px 10px"}}>
+                  <div style={{fontSize:10,color:"#9999b5",marginBottom:2}}>LOGIN</div>
                   <div style={{fontSize:13,fontWeight:600,fontFamily:"monospace"}}>{u.login}</div>
                 </div>
-                <div style={{background:"var(--bg)",borderRadius:8,padding:"8px 10px"}}>
-                  <div style={{fontSize:10,color:"var(--text3)",marginBottom:2}}>UID</div>
+                <div style={{background:"#f7f7fb",borderRadius:8,padding:"8px 10px"}}>
+                  <div style={{fontSize:10,color:"#9999b5",marginBottom:2}}>UID</div>
                   <div style={{fontSize:13,fontWeight:600,fontFamily:"monospace"}}>{u.uid}</div>
                 </div>
                 {u.telegram_id&&<div style={{background:"#e0f2fe",borderRadius:8,padding:"8px 10px",gridColumn:"1/-1"}}>
@@ -1413,18 +1413,18 @@ function AdminPage() {
       {tab==="invitations"&&(
         <div>
           <div style={{fontSize:14,fontWeight:700,marginBottom:12}}>📨 Taklifnomalar — {invs.length} ta</div>
-          {invs.length===0?<div style={{textAlign:"center",color:"var(--text2)",padding:20}}>Taklifnomalar yo'q</div>:invs.map(inv=>(
-            <div key={inv.id} style={{background:"var(--white)",borderRadius:12,padding:14,marginBottom:8,boxShadow:"var(--shadow)"}}>
+          {invs.length===0?<div style={{textAlign:"center",color:"#6b6b8d",padding:20}}>Taklifnomalar yo'q</div>:invs.map(inv=>(
+            <div key={inv.id} style={{background:"#ffffff",borderRadius:12,padding:14,marginBottom:8,boxShadow:"0 2px 12px rgba(0,0,0,0.06)"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
                 <div style={{fontSize:13,fontWeight:700}}>{inv.template_name||inv.category}</div>
                 <div style={{fontSize:11,padding:"3px 8px",borderRadius:20,background:inv.is_free?"#f0fdf4":"#fef3c7",color:inv.is_free?"#16a34a":"#92400e",fontWeight:600}}>
                   {inv.is_free?"Bepul":"💳 Pullik"}
                 </div>
               </div>
-              <div style={{fontSize:12,color:"var(--text2)",marginBottom:4}}>
+              <div style={{fontSize:12,color:"#6b6b8d",marginBottom:4}}>
                 👤 <strong>{inv.user_login}</strong> • 💬 {inv.response_count} javob • 📅 {new Date(inv.created_at).toLocaleDateString()}
               </div>
-              {inv.link&&<div style={{fontSize:11,color:"var(--purple)",wordBreak:"break-all",padding:"6px 8px",background:"#f5f3ff",borderRadius:6}}>{inv.link}</div>}
+              {inv.link&&<div style={{fontSize:11,color:"#7c3aed",wordBreak:"break-all",padding:"6px 8px",background:"#f5f3ff",borderRadius:6}}>{inv.link}</div>}
             </div>
           ))}
         </div>
@@ -1458,7 +1458,7 @@ function TplForm({ tpl, hdrs, onDone, onCancel }) {
   const fieldStyle = { display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 };
 
   return (
-    <div style={{ background:"var(--white)", borderRadius:16, padding:20, marginBottom:16, boxShadow:"0 4px 20px rgba(0,0,0,0.08)" }}>
+    <div style={{ background:"#ffffff", borderRadius:16, padding:20, marginBottom:16, boxShadow:"0 4px 20px rgba(0,0,0,0.08)" }}>
       <h3 style={{ fontSize:16, marginBottom:12 }}>{isEdit?"✏️ Tahrirlash":"➕ Yangi shablon"}</h3>
       <div style={fieldStyle}>
         {!isEdit&&<div className="fg"><label>ID (masalan: w1, b2)</label><input className="fi" value={f.id} onChange={e=>set("id",e.target.value)} placeholder="w4"/></div>}
@@ -1479,7 +1479,7 @@ function TplForm({ tpl, hdrs, onDone, onCancel }) {
       </div>
       <div style={{ display:"flex", gap:8, marginTop:14 }}>
         <button className="main-btn" style={{flex:1}} onClick={submit}>{isEdit?"💾 Saqlash":"✅ Yaratish"}</button>
-        <button onClick={onCancel} style={{ flex:1, padding:14, borderRadius:12, border:"1px solid var(--border)", background:"var(--bg)", fontFamily:"Inter", fontSize:14, cursor:"pointer" }}>❌ Bekor</button>
+        <button onClick={onCancel} style={{ flex:1, padding:14, borderRadius:12, border:"1px solid #ececf4", background:"#f7f7fb", fontFamily:"Inter", fontSize:14, cursor:"pointer" }}>❌ Bekor</button>
       </div>
     </div>
   );
