@@ -51,6 +51,11 @@ export async function viewBySlug(slug) {
   return request('/invitations/by-slug/' + slug);
 }
 
+// ViewInvPage uchun — slug bo'yicha public ko'rish
+export async function viewInvitation(slug) {
+  return request('/invitations/by-slug/' + slug);
+}
+
 export async function getInvByUid(uid) {
   return request('/invitations/' + uid);
 }
