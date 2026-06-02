@@ -55,7 +55,7 @@ body {
 .hdr-logo { display: flex; align-items: center; gap: 8px; cursor: pointer; text-decoration: none; }
 .hdr-icon {
   width: 32px; height: 32px;
-  background: linear-gradient(135deg, var(--purple, #7c3aed), var(--pink, #ec4899);
+  background: linear-gradient(135deg, var(--purple, #7c3aed), var(--pink, #ec4899));
   border-radius: 8px; display: flex; align-items: center; justify-content: center;
 }
 .hdr-icon svg { width: 18px; height: 18px; color: #fff; }
@@ -94,7 +94,7 @@ body {
 .hero-sub { font-size: 14px; color: var(--text2, #6b6b8d); line-height: 1.5; max-width: 280px; }
 .hero-deco {
   position: absolute; top: 10px; right: 10px; width: 120px; height: 120px; opacity: .12;
-  background: linear-gradient(135deg, var(--purple, #7c3aed), var(--pink, #ec4899); border-radius: 50%; filter: blur(40px);
+  background: linear-gradient(135deg, var(--purple, #7c3aed), var(--pink, #ec4899)); border-radius: 50%; filter: blur(40px);
   pointer-events: none;
 }
 
@@ -226,7 +226,7 @@ body {
 .form-card { background: var(--white, #ffffff); border-radius: 20px; padding: 32px 24px; box-shadow: var(--shadow-lg, 0 8px 30px rgba(0,0,0,0.08)); }
 .form-card h2 {
   text-align: center; font-size: 24px; margin-bottom: 28px;
-  background: linear-gradient(135deg, var(--purple, #7c3aed), var(--pink, #ec4899);
+  background: linear-gradient(135deg, var(--purple, #7c3aed), var(--pink, #ec4899));
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
 }
 .fg { margin-bottom: 16px; }
@@ -348,7 +348,7 @@ textarea.fi { min-height: 80px; resize: vertical; }
 .prof-hdr { text-align: center; padding: 30px 20px 20px; }
 .prof-avatar {
   width: 72px; height: 72px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--purple, #7c3aed), var(--pink, #ec4899);
+  background: linear-gradient(135deg, var(--purple, #7c3aed), var(--pink, #ec4899));
   display: flex; align-items: center; justify-content: center;
   margin: 0 auto 14px; font-size: 28px; font-weight: 800; color: #fff;
 }
