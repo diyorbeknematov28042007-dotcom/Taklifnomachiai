@@ -144,12 +144,11 @@ function StatsPage() {
   const { lang } = useApp();
   const [stats, setStats] = useState(null);
   useEffect(() => {
-    // Parallel fetch — ikkalasi bir vaqtda (tezroq)
-    Promise.all([
-      fetch("/api/templates").then(r=>r.json()).catch(()=>({templates:[]})),
-      fetch("/api/health").then(r=>r.json()).catch(()=>({uptime:"?"})),
-    ]).then(([d, h]) => {
-      setStats({ templates: d.templates?.length || 0, uptime: h.uptime || "?" });
+    fetch("/api/templates").then(r=>r.json()).then(d => {
+      const tplCount = d.templates?.length || 0;
+      fetch("/api/health").then(r=>r.json()).then(h => {
+        setStats({ templates: tplCount, uptime: h.uptime || "?" });
+      });
     }).catch(() => {});
   }, []);
 
@@ -235,7 +234,11 @@ function Header({ toggleLang }) {
       <div className="hdr-left">
         <Link to="/" className="hdr-logo">
           <div className="hdr-icon">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M3 8l9-5 9 5v8l-9 5-9-5V8z" stroke="#fff" strokeWidth="1.5"/><path d="M3 8l9 5 9-5M12 13v8" stroke="#fff" strokeWidth="1.5"/></svg>
+            <svg viewBox="0 0 100 100" fill="none">
+              <rect x="18" y="38" width="64" height="42" rx="4" fill="#fff"/>
+              <path d="M18 42 L50 62 L82 42 L82 38 L50 58 L18 38 Z" fill="#d8b4fe" opacity="0.6"/>
+              <text x="50" y="58" fontFamily="Georgia, serif" fontSize="26" fontWeight="700" textAnchor="middle" dominantBaseline="middle" fill="#7C3AED">T</text>
+            </svg>
           </div>
           <div className="hdr-brand">{t.brand}<span>{t.brandDot}</span></div>
         </Link>
@@ -653,7 +656,7 @@ function FormPage() {
 function QRCode({ text, size = 160 }) {
   // Simple QR via external API
   const url = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}&bgcolor=ffffff&color=7c3aed&margin=8`;
-  return <img src={url} alt="QR Code" loading="lazy" style={{ width: size, height: size, borderRadius: 12, border: "1px solid var(--border)" }} />;
+  return <img src={url} alt="QR Code" style={{ width: size, height: size, borderRadius: 12, border: "1px solid var(--border)" }} />;
 }
 
 // ==================== SHARE ====================
@@ -856,7 +859,7 @@ function SharePage() {
           <input type="file" accept="image/*" style={{display:"none"}} onChange={onFileChange}/>
           {screenshotPreview ? (
             <div className="pay-upload-preview">
-              <img src={screenshotPreview} alt="preview" loading="lazy"/>
+              <img src={screenshotPreview} alt="preview"/>
               <div className="pay-upload-change">{lang==="uz"?"Boshqa rasm tanlash":"Заменить фото"}</div>
             </div>
           ) : (
@@ -902,12 +905,26 @@ function SharePage() {
       <div className="pay-soon-wrap">
         <div className="pay-soon-title">{lang==="uz"?"Tez orada:":"Скоро:"}</div>
         <div className="pay-soon-btns">
-          {["Click","Payme"].map(name=>(
-            <button key={name} className="pay-soon-btn" onClick={()=>alert(lang==="uz"?`${name} integratsiyasi tez kunda o'rnatiladi. Iltimos karta orqali to'lovni tanlang.`:`Интеграция ${name} скоро будет подключена. Пожалуйста, оплатите картой.`)}>
-              <span className="pay-soon-logo">{name==="Click"?"C":"P"}</span>
-              <span>{name}</span>
-            </button>
-          ))}
+          {/* Payme — haqiqiy brand: och-ko'k fon, oq matn */}
+          <button className="pay-soon-btn payme" onClick={()=>alert(lang==="uz"?"Payme integratsiyasi tez kunda o'rnatiladi. Iltimos karta orqali to'lovni tanlang.":"Интеграция Payme скоро будет подключена. Пожалуйста, оплатите картой.")}>
+            <svg className="pay-soon-svg" viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg">
+              <rect width="120" height="40" rx="8" fill="#33CCCC"/>
+              <text x="60" y="27" fontFamily="Arial, sans-serif" fontSize="18" fontWeight="700" textAnchor="middle" fill="#fff">Payme</text>
+            </svg>
+          </button>
+          {/* Click — haqiqiy brand: ko'k-yashil gradient */}
+          <button className="pay-soon-btn click" onClick={()=>alert(lang==="uz"?"Click integratsiyasi tez kunda o'rnatiladi. Iltimos karta orqali to'lovni tanlang.":"Интеграция Click скоро будет подключена. Пожалуйста, оплатите картой.")}>
+            <svg className="pay-soon-svg" viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="clickGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" style={{stopColor:"#0099FF"}}/>
+                  <stop offset="100%" style={{stopColor:"#00CC66"}}/>
+                </linearGradient>
+              </defs>
+              <rect width="120" height="40" rx="8" fill="url(#clickGrad)"/>
+              <text x="60" y="27" fontFamily="Arial, sans-serif" fontSize="18" fontWeight="700" textAnchor="middle" fill="#fff">Click</text>
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -1175,7 +1192,7 @@ function ProfileInvPage() {
 
 // ==================== ADMIN PAGE ====================
 function AdminPage() {
-  const [key, setKey] = useState(() => sessionStorage.getItem('admin_key') || '');
+  const [key, setKey] = useState(() => localStorage.getItem('admin_key') || '');
   const [auth, setAuth] = useState(false);
   const [stats, setStats] = useState(null);
   const [tpls, setTpls] = useState([]);
@@ -1199,7 +1216,7 @@ function AdminPage() {
       if(!r.ok){alert("Kalit noto'g'ri");return;}
       const d = await r.json();
       setStats(d);setAuth(true);
-      sessionStorage.setItem('admin_key',key);
+      localStorage.setItem('admin_key',key);
       loadAll();
     } catch{alert("Xatolik");}
   };
@@ -1242,14 +1259,6 @@ function AdminPage() {
 
   useEffect(()=>{if(key)doLogin();},[]);
 
-  // Admin chiqish — sessionStorage tozalanadi
-  const adminLogout = () => {
-    sessionStorage.removeItem('admin_key');
-    setKey('');
-    setAuth(false);
-    setStats(null);
-  };
-
   if(!auth) return (
     <div className="auth-wrap">
       <div className="form-card">
@@ -1275,18 +1284,13 @@ function AdminPage() {
       {showScreenshot&&(
         <div onClick={()=>setShowScreenshot(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.85)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
           <div style={{position:"relative",maxWidth:500,width:"100%"}}>
-            <img src={showScreenshot} alt="screenshot" loading="lazy" style={{width:"100%",borderRadius:12,maxHeight:"80vh",objectFit:"contain"}}/>
+            <img src={showScreenshot} alt="screenshot" style={{width:"100%",borderRadius:12,maxHeight:"80vh",objectFit:"contain"}}/>
             <button onClick={()=>setShowScreenshot(null)} style={{position:"absolute",top:-12,right:-12,width:32,height:32,borderRadius:"50%",border:"none",background:"#fff",cursor:"pointer",fontSize:16,fontWeight:700}}>✕</button>
           </div>
         </div>
       )}
 
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-        <h2 style={{fontSize:20}}>🛠 Admin Panel</h2>
-        <button onClick={adminLogout} style={{padding:"7px 14px",borderRadius:8,border:"1px solid #ececf4",background:"#fff",color:"#ef4444",fontFamily:"Inter,sans-serif",fontSize:12,fontWeight:600,cursor:"pointer"}}>
-          🚪 Chiqish
-        </button>
-      </div>
+      <h2 style={{fontSize:20,marginBottom:16}}>🛠 Admin Panel</h2>
 
       {/* Tablar */}
       <div style={{display:"flex",gap:6,marginBottom:20,flexWrap:"wrap"}}>
