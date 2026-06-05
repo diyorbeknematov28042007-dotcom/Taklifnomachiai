@@ -15,9 +15,8 @@ dotenv.config();
 
 // ==================== CONFIG & VALIDATION ====================
 const DATABASE_URL = process.env.DATABASE_URL;
-const SCREENSHOTS_DATABASE_URL = process.env.SCREENSHOTS_DATABASE_URL;
 const JWT_SECRET = process.env.JWT_SECRET;
-const ADMIN_SECRET = process.env.ADMIN_SECRET;
+const ADMIN_SECRET = process.env.ADMIN_SECRET || 'admin-secret-2026';
 const PORT = process.env.PORT || 3001;
 const SITE_URL = (process.env.SITE_URL || 'https://taklifnomachiai.onrender.com').replace(/\/+$/, '');
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -26,18 +25,11 @@ const IS_PROD = NODE_ENV === 'production';
 // Startup checks
 if (!DATABASE_URL) { console.error('❌ DATABASE_URL env kerak!'); process.exit(1); }
 if (!JWT_SECRET && IS_PROD) { console.error('❌ JWT_SECRET env kerak (production)!'); process.exit(1); }
-if (!ADMIN_SECRET && IS_PROD) { console.error('❌ ADMIN_SECRET env kerak (production)!'); process.exit(1); }
-if (!SCREENSHOTS_DATABASE_URL) {
-  console.warn('⚠️  SCREENSHOTS_DATABASE_URL yo\'q — screenshotlar asosiy DB ga saqlanadi');
-}
 
-// Asosiy DB
 const sql = neon(DATABASE_URL);
-// Screenshot DB (alohida Neon akkaunt)
-const sqlSS = SCREENSHOTS_DATABASE_URL ? neon(SCREENSHOTS_DATABASE_URL) : null;
 const SECRET = JWT_SECRET || 'dev-secret-only';
 
-// ==================== MULTER ====================
+// ==================== MULTER (screenshot upload) ====================
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
@@ -49,8 +41,11 @@ const upload = multer({
 
 // ==================== APP SETUP ====================
 const app = express();
+
+// Trust Render proxy (for rate limiting & HTTPS)
 app.set('trust proxy', 1);
 
+// HTTPS redirect (production only)
 if (IS_PROD) {
   app.use((req, res, next) => {
     if (req.headers['x-forwarded-proto'] !== 'https') {
@@ -60,6 +55,7 @@ if (IS_PROD) {
   });
 }
 
+// Security headers
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
@@ -68,25 +64,16 @@ app.use((req, res, next) => {
   next();
 });
 
-const allowedOrigins = IS_PROD
-  ? [SITE_URL, SITE_URL.replace('https://www.', 'https://'), SITE_URL.replace('https://', 'https://www.')]
-  : ['*'];
+app.use(cors({ origin: IS_PROD ? SITE_URL : '*' }));
+app.use(express.json({ limit: '10mb' }));
 
-app.use(cors({
-  origin: (origin, cb) => {
-    if (!IS_PROD || !origin || allowedOrigins.includes(origin)) cb(null, true);
-    else cb(new Error('CORS: ruxsat yo\'q'));
-  },
-  credentials: true,
-}));
-app.use(express.json({ limit: '1mb' }));
-
+// Static files (React build)
 app.use(express.static(path.join(__dirname, 'dist'), {
   maxAge: IS_PROD ? '7d' : 0,
   etag: true,
 }));
 
-// ==================== RATE LIMITING ====================
+// ==================== RATE LIMITING (in-memory) ====================
 const rateLimits = new Map();
 function rateLimit(windowMs, maxReqs) {
   return (req, res, next) => {
@@ -105,6 +92,7 @@ function rateLimit(windowMs, maxReqs) {
     next();
   };
 }
+// Cleanup every 5 min
 setInterval(() => {
   const now = Date.now();
   for (const [key, val] of rateLimits) {
@@ -123,14 +111,9 @@ app.get('/api/health', async (req, res) => {
     const start = Date.now();
     await sql`SELECT 1`;
     const dbMs = Date.now() - start;
-    let ssDb = 'not configured';
-    if (sqlSS) {
-      try { await sqlSS`SELECT 1`; ssDb = 'connected'; } catch { ssDb = 'error'; }
-    }
     res.json({
       status: 'ok', db: 'connected', dbLatency: dbMs + 'ms',
-      screenshotDb: ssDb, url: SITE_URL, env: NODE_ENV,
-      uptime: Math.floor(process.uptime()) + 's'
+      url: SITE_URL, env: NODE_ENV, uptime: Math.floor(process.uptime()) + 's'
     });
   } catch (e) {
     logError('health', e);
@@ -159,7 +142,7 @@ function validateLogin(login) {
   return null;
 }
 
-// ==================== MIDDLEWARE ====================
+// ==================== AUTH MIDDLEWARE ====================
 function authMiddleware(req, res, next) {
   const header = req.headers.authorization;
   if (!header || !header.startsWith('Bearer ')) return res.status(401).json({ error: 'Token kerak' });
@@ -178,21 +161,19 @@ function adminMiddleware(req, res, next) {
   next();
 }
 
-const authLimiter = rateLimit(60000, 10);
-const adminLimiter = rateLimit(60000, 20);
-const createLimiter = rateLimit(60000, 5);
-const responseLimiter = rateLimit(60000, 10);
-const uploadLimiter = rateLimit(60000, 5);
-
 // ==================== AUTH ====================
+const authLimiter = rateLimit(60000, 10); // 10 req/min per IP
+
 app.post('/api/auth/register', authLimiter, async (req, res) => {
   try {
     const login = sanitize(req.body.login, 30);
     const password = req.body.password;
+
     const loginErr = validateLogin(login);
     if (loginErr) return res.status(400).json({ error: loginErr });
     if (!password || password.length < 6) return res.status(400).json({ error: 'Parol kamida 6 belgi', code: 'PASSWORD_SHORT' });
     if (password.length > 100) return res.status(400).json({ error: 'Parol juda uzun' });
+
     const existing = await sql`SELECT id FROM users WHERE login = ${login}`;
     if (existing.length > 0) {
       return res.status(409).json({
@@ -200,13 +181,17 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
         suggestions: [login + Math.floor(Math.random() * 999), login + '_' + Math.floor(Math.random() * 99)]
       });
     }
+
     const uid = generateUID();
     const hash = await bcrypt.hash(password, 10);
     const r = await sql`INSERT INTO users (uid, login, password_hash) VALUES (${uid}, ${login}, ${hash}) RETURNING id, uid, login, created_at`;
     const u = r[0];
-    const token = jwt.sign({ id: u.id, uid: u.uid, login: u.login }, SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: u.id, uid: u.uid, login: u.login }, SECRET, { expiresIn: '30d' });
     res.json({ user: { id: u.id, uid: u.uid, login: u.login }, token });
-  } catch (e) { logError('register', e); res.status(500).json({ error: 'Server xatosi' }); }
+  } catch (e) {
+    logError('register', e);
+    res.status(500).json({ error: 'Server xatosi' });
+  }
 });
 
 app.post('/api/auth/login', authLimiter, async (req, res) => {
@@ -214,14 +199,20 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
     const login = sanitize(req.body.login, 30);
     const password = req.body.password;
     if (!login || !password) return res.status(400).json({ error: 'Login va parol kerak' });
+
     const users = await sql`SELECT * FROM users WHERE login = ${login}`;
     if (users.length === 0) return res.status(401).json({ error: 'Login yoki parol noto\'g\'ri' });
+
     const u = users[0];
     const valid = await bcrypt.compare(password, u.password_hash);
     if (!valid) return res.status(401).json({ error: 'Login yoki parol noto\'g\'ri' });
-    const token = jwt.sign({ id: u.id, uid: u.uid, login: u.login }, SECRET, { expiresIn: '7d' });
+
+    const token = jwt.sign({ id: u.id, uid: u.uid, login: u.login }, SECRET, { expiresIn: '30d' });
     res.json({ user: { id: u.id, uid: u.uid, login: u.login }, token });
-  } catch (e) { logError('login', e); res.status(500).json({ error: 'Server xatosi' }); }
+  } catch (e) {
+    logError('login', e);
+    res.status(500).json({ error: 'Server xatosi' });
+  }
 });
 
 app.get('/api/auth/me', authMiddleware, async (req, res) => {
@@ -252,16 +243,21 @@ app.get('/api/templates/:id', async (req, res) => {
 });
 
 // ==================== INVITATIONS ====================
+const createLimiter = rateLimit(60000, 5); // 5 creates/min
+
 app.post('/api/invitations', authMiddleware, createLimiter, async (req, res) => {
   try {
-    const { templateId, category, data } = req.body;
+    const { templateId, category, data, customSlug } = req.body;
     if (!templateId || !category || !data) return res.status(400).json({ error: 'templateId, category va data kerak' });
+
     const uid = generateSlugID();
     const tpls = await sql`SELECT * FROM templates WHERE id = ${sanitize(templateId, 10)}`;
     if (tpls.length === 0) return res.status(404).json({ error: 'Shablon topilmadi' });
     const tpl = tpls[0];
+
     let slug = null, link = null;
     const isFree = tpl.is_free;
+
     if (isFree) {
       let names = '';
       if (category === 'wedding') names = transliterate((data.groomName || '') + '-' + (data.brideName || ''));
@@ -271,17 +267,22 @@ app.post('/api/invitations', authMiddleware, createLimiter, async (req, res) => 
       slug = `${category}-${names}-${uid}`.slice(0, 90);
       link = `${SITE_URL}/v/${slug}`;
     }
+    // Premium — slug va link yo'q, foydalanuvchi to'lovdan keyin o'zi tanlaydi
+
     const paymentCode = !isFree ? generateUID() : null;
     const dataStr = JSON.stringify(data);
     if (dataStr.length > 10000) return res.status(400).json({ error: 'Ma\'lumotlar juda katta' });
+
     const r = await sql`
       INSERT INTO invitations (uid, user_id, template_id, category, data, slug, link, is_free, price, payment_code)
       VALUES (${uid}, ${req.user.id}, ${templateId}, ${category}, ${dataStr}, ${slug}, ${link}, ${isFree}, ${tpl.price}, ${paymentCode})
       RETURNING *`;
     const inv = r[0];
+
     if (!isFree && paymentCode) {
       await sql`INSERT INTO payments (user_id, invitation_id, code, amount) VALUES (${req.user.id}, ${inv.id}, ${paymentCode}, ${tpl.price})`;
     }
+
     res.json({ invitation: inv, paymentCode });
   } catch (e) { logError('createInv', e); res.status(500).json({ error: 'Server xatosi' }); }
 });
@@ -297,6 +298,7 @@ app.get('/api/invitations/my', authMiddleware, async (req, res) => {
   } catch (e) { logError('myInv', e); res.status(500).json({ error: 'Server xatosi' }); }
 });
 
+// Public: slug bo'yicha ko'rish
 app.get('/api/invitations/by-slug/:slug', async (req, res) => {
   try {
     const slug = sanitize(req.params.slug, 100);
@@ -306,11 +308,15 @@ app.get('/api/invitations/by-slug/:slug', async (req, res) => {
       FROM invitations i LEFT JOIN templates t ON i.template_id = t.id
       WHERE i.slug = ${slug}`;
     if (r.length === 0) return res.status(404).json({ error: 'Taklifnoma topilmadi' });
+
+    // View count (fire and forget)
     sql`UPDATE invitations SET views = COALESCE(views, 0) + 1 WHERE slug = ${slug}`.catch(() => {});
+
     res.json({ invitation: r[0] });
   } catch (e) { logError('bySlug', e); res.status(500).json({ error: 'Server xatosi' }); }
 });
 
+// UID bo'yicha
 app.get('/api/invitations/:uid', async (req, res) => {
   try {
     const r = await sql`
@@ -322,23 +328,9 @@ app.get('/api/invitations/:uid', async (req, res) => {
   } catch (e) { logError('invByUid', e); res.status(500).json({ error: 'Server xatosi' }); }
 });
 
-app.post('/api/invitations/set-slug', authMiddleware, async (req, res) => {
-  try {
-    const { invitationId, customSlug } = req.body;
-    const cs = sanitize(customSlug, 30).replace(/[^a-zA-Z0-9-]/g, '');
-    if (cs.length < 3) return res.status(400).json({ error: 'Slug kamida 3 belgi' });
-    const inv = await sql`SELECT * FROM invitations WHERE id = ${invitationId} AND user_id = ${req.user.id}`;
-    if (inv.length === 0) return res.status(404).json({ error: 'Topilmadi' });
-    if (!inv[0].is_paid && !inv[0].is_free) return res.status(400).json({ error: 'Avval to\'lov qiling' });
-    const ex = await sql`SELECT id FROM invitations WHERE slug = ${cs} AND id != ${invitationId}`;
-    if (ex.length > 0) return res.status(409).json({ error: 'Bu slug band' });
-    const link = `${SITE_URL}/v/${cs}`;
-    await sql`UPDATE invitations SET slug = ${cs}, link = ${link} WHERE id = ${invitationId}`;
-    res.json({ link, slug: cs });
-  } catch (e) { logError('setSlug', e); res.status(500).json({ error: 'Server xatosi' }); }
-});
-
 // ==================== RESPONSES ====================
+const responseLimiter = rateLimit(60000, 10);
+
 app.post('/api/responses', responseLimiter, async (req, res) => {
   try {
     const { invitationId, rsvp, guestCount, message, senderName } = req.body;
@@ -364,16 +356,19 @@ app.get('/api/responses/:invitationId', authMiddleware, async (req, res) => {
 
 // ==================== PAYMENTS ====================
 
-// GET /api/payments/card — aktiv kartani olish
+// GET /api/payments/card — aktiv kartani olish (public)
 app.get('/api/payments/card', async (req, res) => {
   try {
-    const r = await sql`SELECT id, card_number, card_owner, card_type FROM payment_cards WHERE is_active = true ORDER BY created_at DESC LIMIT 1`;
+    const r = await sql`
+      SELECT id, card_number, card_owner, card_type
+      FROM payment_cards WHERE is_active = true
+      ORDER BY created_at DESC LIMIT 1`;
     if (r.length === 0) return res.status(404).json({ error: 'Karta topilmadi' });
     res.json(r[0]);
   } catch (e) { logError('payCard', e); res.status(500).json({ error: 'Server xatosi' }); }
 });
 
-// POST /api/payments/card — yangi karta (admin)
+// POST /api/payments/card — yangi karta qo'shish (admin)
 app.post('/api/payments/card', adminMiddleware, async (req, res) => {
   try {
     const { card_number, card_owner, card_type } = req.body;
@@ -385,12 +380,13 @@ app.post('/api/payments/card', adminMiddleware, async (req, res) => {
     await sql`UPDATE payment_cards SET is_active = false`;
     const r = await sql`
       INSERT INTO payment_cards (card_number, card_owner, card_type, is_active)
-      VALUES (${sanitize(card_number, 25)}, ${sanitize(card_owner, 100)}, ${card_type}, true) RETURNING *`;
+      VALUES (${sanitize(card_number, 25)}, ${sanitize(card_owner, 100)}, ${card_type}, true)
+      RETURNING *`;
     res.json(r[0]);
   } catch (e) { logError('payCardCreate', e); res.status(500).json({ error: 'Server xatosi' }); }
 });
 
-// GET /api/payments/card/all — admin
+// GET /api/payments/card/all — barcha kartalar (admin)
 app.get('/api/payments/card/all', adminMiddleware, async (req, res) => {
   try {
     const r = await sql`SELECT * FROM payment_cards ORDER BY created_at DESC`;
@@ -398,7 +394,7 @@ app.get('/api/payments/card/all', adminMiddleware, async (req, res) => {
   } catch (e) { logError('payCardAll', e); res.status(500).json({ error: 'Server xatosi' }); }
 });
 
-// DELETE /api/payments/card/:id — admin
+// DELETE /api/payments/card/:id — kartani o'chirish (admin)
 app.delete('/api/payments/card/:id', adminMiddleware, async (req, res) => {
   try {
     await sql`DELETE FROM payment_cards WHERE id = ${req.params.id}`;
@@ -406,16 +402,14 @@ app.delete('/api/payments/card/:id', adminMiddleware, async (req, res) => {
   } catch (e) { logError('payCardDel', e); res.status(500).json({ error: 'Server xatosi' }); }
 });
 
-// ==================== SCREENSHOT UPLOAD ====================
-// Screenshot alohida Neon DB ga saqlanadi (SCREENSHOTS_DATABASE_URL)
-// Asosiy DB da faqat screenshot_id saqlanadi
+// POST /api/payments/upload — screenshot yuklash + avto-tasdiqlash
+const uploadLimiter = rateLimit(60000, 5);
 app.post('/api/payments/upload', authMiddleware, uploadLimiter, upload.single('screenshot'), async (req, res) => {
   try {
     const { invitation_uid } = req.body;
     if (!req.file) return res.status(400).json({ error: 'Screenshot kerak' });
     if (!invitation_uid) return res.status(400).json({ error: 'invitation_uid kerak' });
 
-    // Taklifnomani tekshirish
     const invR = await sql`
       SELECT id, user_id, is_free, is_paid FROM invitations
       WHERE uid = ${sanitize(invitation_uid, 10)}`;
@@ -426,65 +420,22 @@ app.post('/api/payments/upload', authMiddleware, uploadLimiter, upload.single('s
     if (inv.is_free) return res.status(400).json({ error: 'Bu taklifnoma bepul' });
     if (inv.is_paid) return res.status(400).json({ error: 'Allaqachon to\'langan' });
 
-    // Base64 ga o'tkazish
     const base64Full = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
-    const paymentR = await sql`SELECT id FROM payments WHERE invitation_id = ${inv.id} LIMIT 1`;
-    const paymentId = paymentR.length > 0 ? paymentR[0].id : null;
 
-    let screenshotId = null;
-
-    // ── ALOHIDA NEON DB GA SAQLASH ──
-    if (sqlSS) {
-      try {
-        // Screenshot DB da jadval bo'lishi kerak
-        const ssR = await sqlSS`
-          INSERT INTO screenshots (payment_id, invitation_uid, image_base64, created_at)
-          VALUES (${paymentId}, ${invitation_uid}, ${base64Full}, NOW())
-          RETURNING id`;
-        screenshotId = ssR[0].id;
-        console.log(`[screenshot] Alohida DB ga saqlandi, id: ${screenshotId}`);
-      } catch (e) {
-        // Alohida DB xato bo'lsa asosiy DB ga fallback
-        logError('screenshotDB', e);
-        console.warn('[screenshot] Alohida DB xato, asosiy DB ga fallback');
-      }
-    }
-
-    // ── ASOSIY DB DA PAYMENT YANGILASH ──
-    if (paymentId) {
-      if (screenshotId) {
-        // Alohida DB ishladi — faqat ID saqlash
-        await sql`
-          UPDATE payments
-          SET screenshot_id = ${screenshotId}, status = 'paid', paid_at = NOW()
-          WHERE id = ${paymentId}`;
-      } else {
-        // Fallback — asosiy DB ga base64
-        await sql`
-          UPDATE payments
-          SET screenshot_base64 = ${base64Full}, status = 'paid', paid_at = NOW()
-          WHERE id = ${paymentId}`;
-      }
+    const payR = await sql`SELECT id FROM payments WHERE invitation_id = ${inv.id} LIMIT 1`;
+    if (payR.length > 0) {
+      await sql`UPDATE payments SET screenshot_base64 = ${base64Full}, status = 'paid', paid_at = NOW() WHERE id = ${payR[0].id}`;
     } else {
-      // Yangi payment yaratish
-      if (screenshotId) {
-        await sql`
-          INSERT INTO payments (user_id, invitation_id, code, amount, status, screenshot_id, paid_at)
-          VALUES (${req.user.id}, ${inv.id}, ${generateUID()}, 0, 'paid', ${screenshotId}, NOW())`;
-      } else {
-        await sql`
-          INSERT INTO payments (user_id, invitation_id, code, amount, status, screenshot_base64, paid_at)
-          VALUES (${req.user.id}, ${inv.id}, ${generateUID()}, 0, 'paid', ${base64Full}, NOW())`;
-      }
+      await sql`
+        INSERT INTO payments (user_id, invitation_id, code, amount, status, screenshot_base64, paid_at)
+        VALUES (${req.user.id}, ${inv.id}, ${generateUID()}, 0, 'paid', ${base64Full}, NOW())`;
     }
-
-    // Taklifnomani faollashtirish
     await sql`UPDATE invitations SET is_paid = true WHERE id = ${inv.id}`;
     res.json({ success: true, message: 'To\'lov tasdiqlandi!' });
   } catch (e) { logError('payUpload', e); res.status(500).json({ error: 'Server xatosi' }); }
 });
 
-// GET /api/payments/status/:uid
+// GET /api/payments/status/:uid — to'lov holatini tekshirish
 app.get('/api/payments/status/:uid', authMiddleware, async (req, res) => {
   try {
     const r = await sql`
@@ -495,6 +446,25 @@ app.get('/api/payments/status/:uid', authMiddleware, async (req, res) => {
     if (r.length === 0) return res.json({ status: 'not_found', is_paid: false });
     res.json(r[0]);
   } catch (e) { logError('payStatus', e); res.status(500).json({ error: 'Server xatosi' }); }
+});
+
+app.post('/api/invitations/set-slug', authMiddleware, async (req, res) => {
+  try {
+    const { invitationId, customSlug } = req.body;
+    const cs = sanitize(customSlug, 30).replace(/[^a-zA-Z0-9-]/g, '');
+    if (cs.length < 3) return res.status(400).json({ error: 'Slug kamida 3 belgi' });
+
+    const inv = await sql`SELECT * FROM invitations WHERE id = ${invitationId} AND user_id = ${req.user.id}`;
+    if (inv.length === 0) return res.status(404).json({ error: 'Topilmadi' });
+    if (!inv[0].is_paid && !inv[0].is_free) return res.status(400).json({ error: 'Avval to\'lov qiling' });
+
+    const ex = await sql`SELECT id FROM invitations WHERE slug = ${cs} AND id != ${invitationId}`;
+    if (ex.length > 0) return res.status(409).json({ error: 'Bu slug band' });
+
+    const link = `${SITE_URL}/v/${cs}`;
+    await sql`UPDATE invitations SET slug = ${cs}, link = ${link} WHERE id = ${invitationId}`;
+    res.json({ link, slug: cs });
+  } catch (e) { logError('setSlug', e); res.status(500).json({ error: 'Server xatosi' }); }
 });
 
 // ==================== ADMIN ====================
@@ -569,66 +539,83 @@ app.get('/api/admin/invitations', adminMiddleware, async (req, res) => {
   } catch (e) { logError('adminInv', e); res.status(500).json({ error: 'Server xatosi' }); }
 });
 
-// Admin — to'lovlar (screenshot alohida DB dan olinadi)
+// Admin — to'lovlar ro'yxati (screenshot bilan)
 app.get('/api/admin/payments', adminMiddleware, async (req, res) => {
   try {
-    const payments = await sql`
-      SELECT p.id, p.code, p.amount, p.status, p.paid_at,
-        p.screenshot_id, p.screenshot_base64,
+    const r = await sql`
+      SELECT p.id, p.code, p.amount, p.status, p.paid_at, p.screenshot_base64,
         i.uid as inv_uid, i.category, i.slug,
         u.login as user_login
       FROM payments p
       JOIN invitations i ON p.invitation_id = i.id
       JOIN users u ON p.user_id = u.id
       ORDER BY p.created_at DESC LIMIT 100`;
-
-    // screenshot_id bo'lsa alohida DB dan olish
-    const result = await Promise.all(payments.map(async (p) => {
-      if (p.screenshot_id && sqlSS) {
-        try {
-          const ss = await sqlSS`SELECT image_base64 FROM screenshots WHERE id = ${p.screenshot_id} LIMIT 1`;
-          return { ...p, screenshot_base64: ss[0]?.image_base64 || null };
-        } catch { return p; }
-      }
-      return p;
-    }));
-
-    res.json({ payments: result });
+    res.json({ payments: r });
   } catch (e) { logError('adminPayments', e); res.status(500).json({ error: 'Server xatosi' }); }
 });
 
-// ==================== OG TAGS ====================
+// ==================== OG TAGS (link preview) ====================
 app.get('/v/:slug', async (req, res) => {
   try {
     const r = await sql`
       SELECT i.category, i.data, i.slug, t.bg_style, t.accent_color FROM invitations i
       LEFT JOIN templates t ON i.template_id = t.id WHERE i.slug = ${req.params.slug}`;
+
     if (r.length > 0) {
       const inv = r[0];
       const d = typeof inv.data === 'string' ? JSON.parse(inv.data) : inv.data;
       let title = 'Taklifnoma', desc = 'Sizni taklif qilamiz!', emoji = '📨';
-      if (inv.category === 'wedding') { title = (d.groomName||'') + ' & ' + (d.brideName||''); desc = d.mainText ? d.mainText.slice(0,150) : title + ' to\'yiga taklif!'; emoji = '💍'; }
-      else if (inv.category === 'birthday') { title = (d.birthdayPerson||'') + ' - Tug\'ilgan kun'; desc = d.birthdayText ? d.birthdayText.slice(0,150) : 'Tug\'ilgan kun bayramiga taklif!'; emoji = '🎂'; }
-      else if (inv.category === 'event') { title = d.eventName||'Tadbir'; desc = d.eventDesc ? d.eventDesc.slice(0,150) : 'Tadbirga taklif!'; emoji = '🎤'; }
-      else if (inv.category === 'love') { title = (d.loveFrom||'') + ' ❤ ' + (d.loveTo||''); desc = 'Dil izhori'; emoji = '❤️'; }
-      const safeTitle = title.replace(/"/g,'&quot;').replace(/</g,'&lt;');
-      const safeDesc = desc.replace(/"/g,'&quot;').replace(/</g,'&lt;');
+
+      if (inv.category === 'wedding') {
+        title = (d.groomName || '') + ' & ' + (d.brideName || '');
+        desc = d.mainText ? d.mainText.slice(0, 150) : (title + ' to\'yiga taklif etamiz!');
+        emoji = '💍';
+      } else if (inv.category === 'birthday') {
+        title = (d.birthdayPerson || '') + ' - Tug\'ilgan kun';
+        desc = d.birthdayText ? d.birthdayText.slice(0, 150) : 'Tug\'ilgan kun bayramiga taklif!';
+        emoji = '🎂';
+      } else if (inv.category === 'event') {
+        title = d.eventName || 'Tadbir';
+        desc = d.eventDesc ? d.eventDesc.slice(0, 150) : 'Tadbirga taklif!';
+        emoji = '🎤';
+      } else if (inv.category === 'love') {
+        title = (d.loveFrom || '') + ' ❤ ' + (d.loveTo || '');
+        desc = 'Dil izhori';
+        emoji = '❤️';
+      }
+
+      const safeTitle = title.replace(/"/g, '&quot;').replace(/</g, '&lt;');
+      const safeDesc = desc.replace(/"/g, '&quot;').replace(/</g, '&lt;');
+      const color = inv.accent_color || '#7c3aed';
+      const ogUrl = SITE_URL + '/v/' + req.params.slug;
+      const ogImg = SITE_URL + '/og-image.png';
+
       const ua = req.headers['user-agent'] || '';
       const isBot = /bot|crawler|spider|facebook|twitter|telegram|whatsapp|linkedin|vk|discord|slack/i.test(ua);
+
       if (isBot) {
+        // Botlar uchun OG meta inject qilingan index.html
         const fs = await import('fs');
         const indexPath = path.join(__dirname, 'dist', 'index.html');
-        let html = ''; try { html = fs.readFileSync(indexPath, 'utf8'); } catch {}
+        let html = '';
+        try { html = fs.readFileSync(indexPath, 'utf8'); } catch {}
+
         if (html) {
-          const ogTags = `<title>${emoji} ${safeTitle} | Taklifnomachi</title>
+          const ogTags = `
+  <title>${emoji} ${safeTitle} | Taklifnomachi</title>
   <meta name="description" content="${safeDesc}">
   <meta property="og:title" content="${emoji} ${safeTitle}">
   <meta property="og:description" content="${safeDesc}">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="${SITE_URL}/v/${req.params.slug}">
-  <meta property="og:image" content="${SITE_URL}/og-image.svg">
+  <meta property="og:url" content="${ogUrl}">
+  <meta property="og:image" content="${ogImg}">
   <meta property="og:site_name" content="Taklifnomachi.online">
-  <meta name="theme-color" content="${inv.accent_color||'#7c3aed'}">`;
+  <meta property="og:locale" content="uz_UZ">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${emoji} ${safeTitle}">
+  <meta name="twitter:description" content="${safeDesc}">
+  <meta name="twitter:image" content="${ogImg}">
+  <meta name="theme-color" content="${color}">`;
           html = html.replace(/<title>[^<]*<\/title>/, '');
           html = html.replace('</head>', ogTags + '\n</head>');
           return res.send(html);
@@ -636,6 +623,8 @@ app.get('/v/:slug', async (req, res) => {
       }
     }
   } catch (e) { logError('ogTags', e); }
+
+  // Browser — SPA ga
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
@@ -644,23 +633,23 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
-// ==================== GRACEFUL SHUTDOWN ====================
-const server = app.listen(PORT, () => {
+// ==================== START ====================
+app.listen(PORT, () => {
   console.log(`🚀 Taklifnomachi server: http://localhost:${PORT}`);
   console.log(`   ENV: ${NODE_ENV} | URL: ${SITE_URL}`);
-  console.log(`   Screenshot DB: ${sqlSS ? 'Alohida Neon ✅' : 'Asosiy Neon ⚠️'}`);
 
+  // Neon keep-alive: har 4 daqiqada yengil ping
+  // Sabab: Render 15 daqiqada uxlab qoladi → Neon compute o'chadi
+  // → Qayta uyg'onganda CPU spike → 191 soat tez tugaydi
+  // Bu ping Render ni emas, Neon ni jonli ushlab turadi
   if (IS_PROD) {
     setInterval(async () => {
-      try { await sql`SELECT 1`; } catch (e) { logError('keep-alive', e); }
-    }, 4 * 60 * 1000);
+      try {
+        await sql`SELECT 1`;
+        console.log('[keep-alive] Neon ping OK');
+      } catch (e) {
+        console.error('[keep-alive] Neon ping xato:', e.message);
+      }
+    }, 4 * 60 * 1000); // 4 daqiqa
   }
-});
-
-process.on('SIGTERM', () => {
-  console.log('SIGTERM — server yopilmoqda...');
-  server.close(() => { console.log('Server yopildi'); process.exit(0); });
-});
-process.on('SIGINT', () => {
-  server.close(() => process.exit(0));
 });
