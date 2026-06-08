@@ -9,10 +9,10 @@ import { getTemplateComponent } from "./templates/templateRegistry";
 class ErrorBoundary extends Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, msg: '' };
   }
-  static getDerivedStateFromError() {
-    return { hasError: true };
+  static getDerivedStateFromError(error) {
+    return { hasError: true, msg: error?.message || String(error) };
   }
   componentDidCatch(error, info) {
     console.error("ErrorBoundary:", error, info);
@@ -23,7 +23,12 @@ class ErrorBoundary extends Component {
         <div style={{textAlign:"center",padding:"60px 20px",minHeight:"60vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
           <div style={{fontSize:48,marginBottom:16}}>😔</div>
           <div style={{fontSize:17,fontWeight:600,color:"#1a1a2e",marginBottom:8}}>Nimadir xato ketdi</div>
-          <div style={{fontSize:14,color:"#6b6b8d",marginBottom:20}}>Sahifani qayta yuklang yoki keyinroq urinib ko'ring</div>
+          <div style={{fontSize:14,color:"#6b6b8d",marginBottom:12}}>Sahifani qayta yuklang yoki keyinroq urinib ko'ring</div>
+          {this.state.msg && (
+            <div style={{fontSize:11,color:"#ef4444",marginBottom:20,maxWidth:340,wordBreak:"break-word",fontFamily:"monospace",background:"#fef2f2",padding:"8px 12px",borderRadius:8}}>
+              {this.state.msg}
+            </div>
+          )}
           <button onClick={() => window.location.reload()} style={{padding:"11px 22px",borderRadius:10,border:"none",background:"#7c3aed",color:"#fff",fontFamily:"Inter,sans-serif",fontSize:14,fontWeight:600,cursor:"pointer"}}>
             🔄 Qayta yuklash
           </button>
