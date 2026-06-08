@@ -16,9 +16,23 @@ export function Reveal({ children, className = '', style = {}, delay = 0 }) {
 
 // ==================== COUNTDOWN ====================
 function getCD(ds) {
-  const t = new Date(ds) - new Date();
+  const target = parseDateSafe(ds);
+  if (!target) return { d: 0, h: 0, m: 0, s: 0 };
+  const t = target - new Date();
   if (t <= 0) return { d: 0, h: 0, m: 0, s: 0 };
   return { d: Math.floor(t / 864e5), h: Math.floor(t % 864e5 / 36e5), m: Math.floor(t % 36e5 / 6e4), s: Math.floor(t % 6e4 / 1e3) };
+}
+
+// Sana parse helper (Countdown uchun, Calendar dan oldin e'lon qilinadi)
+function parseDateSafe(input) {
+  if (!input) return null;
+  let dt = new Date(input);
+  if (!isNaN(dt.getTime())) return dt;
+  const m = String(input).match(/(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})/);
+  if (m) { dt = new Date(+m[3], +m[2] - 1, +m[1]); if (!isNaN(dt.getTime())) return dt; }
+  const m2 = String(input).match(/(\d{4})[.\/-](\d{1,2})[.\/-](\d{1,2})/);
+  if (m2) { dt = new Date(+m2[1], +m2[2] - 1, +m2[3]); if (!isNaN(dt.getTime())) return dt; }
+  return null;
 }
 
 export function Countdown({ date, style = {}, itemStyle = {}, numStyle = {}, lblStyle = {} }) {
@@ -52,13 +66,26 @@ const MONTHS = ['', 'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 
 const WDAYS = ['Du', 'Se', 'Chor', 'Pay', 'Ju', 'Sha', 'Ya'];
 const DAYNAMES = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'];
 
+// Sana parse — turli formatlarni qo'llab-quvvatlaydi (Invalid Date crash oldini oladi)
+// parseDateSafe yuqorida e'lon qilingan
+
 export function Calendar({ date, time, accentColor = '#d4a574', textColor = '#3a3a3a' }) {
-  const dt = new Date(date);
+  const dt = parseDateSafe(date);
+  // Sana noto'g'ri bo'lsa — kalendar ko'rsatmaslik (crash o'rniga)
+  if (!dt) {
+    return (
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ background: '#fff', borderRadius: 20, padding: '26px 18px', maxWidth: 340, margin: '0 auto', boxShadow: '0 4px 30px rgba(0,0,0,0.05)' }}>
+          <div style={{ fontSize: 16, color: textColor, opacity: 0.7 }}>{date || ''}</div>
+        </div>
+      </div>
+    );
+  }
   const y = dt.getFullYear(), mo = dt.getMonth(), dy = dt.getDate();
   const firstDay = (new Date(y, mo, 1).getDay() + 6) % 7;
   const dim = new Date(y, mo + 1, 0).getDate();
   const weeks = [];
-  let w = Array(firstDay).fill(null);
+  let w = Array(Math.max(0, firstDay)).fill(null);
   for (let i = 1; i <= dim; i++) { w.push(i); if (w.length === 7) { weeks.push(w); w = []; } }
   if (w.length) { while (w.length < 7) w.push(null); weeks.push(w); }
   const dow = DAYNAMES[dt.getDay()];
