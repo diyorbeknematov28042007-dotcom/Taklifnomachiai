@@ -234,11 +234,7 @@ function Header({ toggleLang }) {
       <div className="hdr-left">
         <Link to="/" className="hdr-logo">
           <div className="hdr-icon">
-            <svg viewBox="0 0 100 100" fill="none">
-              <rect x="18" y="38" width="64" height="42" rx="4" fill="#fff"/>
-              <path d="M18 42 L50 62 L82 42 L82 38 L50 58 L18 38 Z" fill="#d8b4fe" opacity="0.6"/>
-              <text x="50" y="58" fontFamily="Georgia, serif" fontSize="26" fontWeight="700" textAnchor="middle" dominantBaseline="middle" fill="#7C3AED">T</text>
-            </svg>
+            <svg viewBox="0 0 24 24" fill="none"><path d="M3 8l9-5 9 5v8l-9 5-9-5V8z" stroke="#fff" strokeWidth="1.5"/><path d="M3 8l9 5 9-5M12 13v8" stroke="#fff" strokeWidth="1.5"/></svg>
           </div>
           <div className="hdr-brand">{t.brand}<span>{t.brandDot}</span></div>
         </Link>
@@ -905,26 +901,12 @@ function SharePage() {
       <div className="pay-soon-wrap">
         <div className="pay-soon-title">{lang==="uz"?"Tez orada:":"Скоро:"}</div>
         <div className="pay-soon-btns">
-          {/* Payme — haqiqiy brand: och-ko'k fon, oq matn */}
-          <button className="pay-soon-btn payme" onClick={()=>alert(lang==="uz"?"Payme integratsiyasi tez kunda o'rnatiladi. Iltimos karta orqali to'lovni tanlang.":"Интеграция Payme скоро будет подключена. Пожалуйста, оплатите картой.")}>
-            <svg className="pay-soon-svg" viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg">
-              <rect width="120" height="40" rx="8" fill="#33CCCC"/>
-              <text x="60" y="27" fontFamily="Arial, sans-serif" fontSize="18" fontWeight="700" textAnchor="middle" fill="#fff">Payme</text>
-            </svg>
-          </button>
-          {/* Click — haqiqiy brand: ko'k-yashil gradient */}
-          <button className="pay-soon-btn click" onClick={()=>alert(lang==="uz"?"Click integratsiyasi tez kunda o'rnatiladi. Iltimos karta orqali to'lovni tanlang.":"Интеграция Click скоро будет подключена. Пожалуйста, оплатите картой.")}>
-            <svg className="pay-soon-svg" viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="clickGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" style={{stopColor:"#0099FF"}}/>
-                  <stop offset="100%" style={{stopColor:"#00CC66"}}/>
-                </linearGradient>
-              </defs>
-              <rect width="120" height="40" rx="8" fill="url(#clickGrad)"/>
-              <text x="60" y="27" fontFamily="Arial, sans-serif" fontSize="18" fontWeight="700" textAnchor="middle" fill="#fff">Click</text>
-            </svg>
-          </button>
+          {["Click","Payme"].map(name=>(
+            <button key={name} className="pay-soon-btn" onClick={()=>alert(lang==="uz"?`${name} integratsiyasi tez kunda o'rnatiladi. Iltimos karta orqali to'lovni tanlang.`:`Интеграция ${name} скоро будет подключена. Пожалуйста, оплатите картой.`)}>
+              <span className="pay-soon-logo">{name==="Click"?"C":"P"}</span>
+              <span>{name}</span>
+            </button>
+          ))}
         </div>
       </div>
 
@@ -950,11 +932,22 @@ function ViewInvPage() {
   if (err) return (
     <div style={{textAlign:"center",padding:"60px 20px"}}>
       <div style={{fontSize:48,marginBottom:12}}>😔</div>
-      <div style={{fontSize:16,fontWeight:600,color:"var(--text2)"}}>{lang==="uz"?"Taklifnoma topilmadi":"Приглашение не найдено"}</div>
-      <Link to="/" style={{color:"var(--purple)",fontSize:14,marginTop:12,display:"inline-block"}}>← {lang==="uz"?"Bosh sahifa":"Главная"}</Link>
+      <div style={{fontSize:16,fontWeight:600,color:"#6b6b8d"}}>{lang==="uz"?"Taklifnoma topilmadi":"Приглашение не найдено"}</div>
+      <Link to="/" style={{color:"#7c3aed",fontSize:14,marginTop:12,display:"inline-block"}}>← {lang==="uz"?"Bosh sahifa":"Главная"}</Link>
     </div>
   );
-  if (!inv) return <div className="loading">{t.loading}</div>;
+
+  if (!inv) return (
+    <div className="inv-skeleton">
+      <div className="inv-skeleton-card">
+        <div className="skeleton-line w60"/>
+        <div className="skeleton-line w40" style={{height:48,borderRadius:12,marginTop:8}}/>
+        <div className="skeleton-line w80" style={{marginTop:20}}/>
+        <div className="skeleton-line w60" style={{marginTop:12}}/>
+        <div className="skeleton-line w70" style={{marginTop:12}}/>
+      </div>
+    </div>
+  );
 
   const d = typeof inv.data === "string" ? JSON.parse(inv.data) : inv.data;
 
@@ -968,7 +961,16 @@ function ViewInvPage() {
 
   if (TemplateComponent) {
     return (
-      <Suspense fallback={<div className="loading">{t.loading}</div>}>
+      <Suspense fallback={
+        <div className="inv-skeleton">
+          <div className="inv-skeleton-card">
+            <div className="skeleton-line w60"/>
+            <div className="skeleton-line w40" style={{height:48,borderRadius:12,marginTop:8}}/>
+            <div className="skeleton-line w80" style={{marginTop:20}}/>
+            <div className="skeleton-line w60" style={{marginTop:12}}/>
+          </div>
+        </div>
+      }>
         <TemplateComponent data={d} invitation={inv} onRespond={handleRespond} sent={sent} lang={lang} />
       </Suspense>
     );
