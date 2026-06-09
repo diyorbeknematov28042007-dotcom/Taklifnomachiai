@@ -151,7 +151,6 @@ export default function WeddingGulzor({ data, invitation, onRespond, sent }) {
   return (
     <div style={{ fontFamily: T.body, color: T.textDark, overflowX: 'hidden' }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');
         ${sharedKeyframes}
         @keyframes petalDrift{0%{transform:translateY(-10px) rotate(0) translateX(0);opacity:0}10%{opacity:.35}50%{transform:translateY(50vh) rotate(180deg) translateX(30px)}100%{transform:translateY(105vh) rotate(360deg) translateX(-20px);opacity:0}}
         @keyframes sparkle{0%,100%{opacity:.15;transform:scale(1)}50%{opacity:.7;transform:scale(1.6)}}
