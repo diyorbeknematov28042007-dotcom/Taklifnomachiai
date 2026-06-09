@@ -111,7 +111,6 @@ export default function WeddingModern({ data, invitation, onRespond, sent }) {
   return (
     <div style={{ fontFamily: T.body, color: T.textDark, overflowX: 'hidden' }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');
         ${sharedKeyframes}
         @keyframes lanternGlow{0%,100%{filter:brightness(1) drop-shadow(0 0 8px rgba(201,168,76,0.3))}50%{filter:brightness(1.2) drop-shadow(0 0 16px rgba(201,168,76,0.6))}}
       `}</style>
