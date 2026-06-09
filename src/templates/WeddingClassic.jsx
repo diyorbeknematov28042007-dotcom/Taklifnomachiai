@@ -85,7 +85,6 @@ export default function WeddingClassic({ data, invitation, onRespond, sent }) {
   return (
     <div style={{ fontFamily: T.fontBody, color: T.textDark, overflowX: 'hidden', WebkitFontSmoothing: 'antialiased' }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');
         ${sharedKeyframes}
         @keyframes floatSlow{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
         @keyframes spinSlow{from{transform:rotate(0)}to{transform:rotate(360deg)}}
