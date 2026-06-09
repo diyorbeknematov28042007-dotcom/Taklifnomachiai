@@ -121,7 +121,6 @@ export default function WeddingDark({ data, invitation, onRespond, sent }) {
   return (
     <div style={{ fontFamily: T.body, color: T.textDark, overflowX: 'hidden' }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');
         ${sharedKeyframes}
         @keyframes featherFall{0%{transform:translateY(-20px) rotate(0) translateX(0);opacity:0}10%{opacity:.4}50%{transform:translateY(50vh) rotate(45deg) translateX(20px)}100%{transform:translateY(100vh) rotate(90deg) translateX(-10px);opacity:0}}
         @keyframes floatSwan{0%,100%{transform:translateY(0) translateX(0)}25%{transform:translateY(-6px) translateX(3px)}75%{transform:translateY(4px) translateX(-3px)}}
