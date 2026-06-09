@@ -1,43 +1,9 @@
-import { useState, useEffect, createContext, useContext, Suspense, Component } from "react";
+import { useState, useEffect, createContext, useContext, Suspense } from "react";
 import { Routes, Route, Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { T, catNames } from "./lib/i18n";
 import * as api from './lib/api';
+import { storage } from './lib/api';
 import { getTemplateComponent } from "./templates/templateRegistry";
-
-// ==================== ERROR BOUNDARY ====================
-// Shablon yoki komponent crash bo'lsa — oq ekran o'rniga xato ko'rsatadi
-class ErrorBoundary extends Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false, msg: '' };
-  }
-  static getDerivedStateFromError(error) {
-    return { hasError: true, msg: error?.message || String(error) };
-  }
-  componentDidCatch(error, info) {
-    console.error("ErrorBoundary:", error, info);
-  }
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div style={{textAlign:"center",padding:"60px 20px",minHeight:"60vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
-          <div style={{fontSize:48,marginBottom:16}}>😔</div>
-          <div style={{fontSize:17,fontWeight:600,color:"#1a1a2e",marginBottom:8}}>Nimadir xato ketdi</div>
-          <div style={{fontSize:14,color:"#6b6b8d",marginBottom:12}}>Sahifani qayta yuklang yoki keyinroq urinib ko'ring</div>
-          {this.state.msg && (
-            <div style={{fontSize:11,color:"#ef4444",marginBottom:20,maxWidth:340,wordBreak:"break-word",fontFamily:"monospace",background:"#fef2f2",padding:"8px 12px",borderRadius:8}}>
-              {this.state.msg}
-            </div>
-          )}
-          <button onClick={() => window.location.reload()} style={{padding:"11px 22px",borderRadius:10,border:"none",background:"#7c3aed",color:"#fff",fontFamily:"Inter,sans-serif",fontSize:14,fontWeight:600,cursor:"pointer"}}>
-            🔄 Qayta yuklash
-          </button>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
 
 const AppContext = createContext();
 function useApp() { return useContext(AppContext); }
@@ -106,13 +72,13 @@ function IgIcon({size=16,color="currentColor"}) {
 
 
 export default function App() {
-  const [lang, setLang] = useState(() => localStorage.getItem('tkn_lang') || 'uz');
+  const [lang, setLang] = useState(() => storage.get('tkn_lang') || 'uz');
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const t = T[lang];
   const navigate = useNavigate();
 
-  useEffect(() => { localStorage.setItem("tkn_lang", lang); }, [lang]);
+  useEffect(() => { storage.set("tkn_lang", lang); }, [lang]);
   useEffect(() => {
     if (api.isLoggedIn()) {
       api.getMe().then(d => setUser(d.user)).catch(() => {}).finally(() => setLoading(false));
@@ -127,7 +93,6 @@ export default function App() {
     <AppContext.Provider value={ctx}>
       <div className="app"><main>
         <Header toggleLang={toggleLang} />
-        <ErrorBoundary>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/templates/:cat" element={<TemplatesPage />} />
@@ -143,7 +108,6 @@ export default function App() {
           <Route path="/admin" element={<AdminPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-        </ErrorBoundary>
         </main><BottomNav />
       </div>
     </AppContext.Provider>
@@ -515,16 +479,7 @@ function PreviewPage() {
   const { t, lang, user, navigate } = useApp();
   const [tpl, setTpl] = useState(null);
   useEffect(() => { api.getTemplate(id).then(d => setTpl(d.template)).catch(() => {}); }, [id]);
-  if (!tpl) return (
-    <div className="inv-skeleton">
-      <div className="inv-skeleton-card">
-        <div className="skeleton-line w60"/>
-        <div className="skeleton-line w40" style={{height:48,borderRadius:12,marginTop:8}}/>
-        <div className="skeleton-line w80" style={{marginTop:20}}/>
-        <div className="skeleton-line w60" style={{marginTop:12}}/>
-      </div>
-    </div>
-  );
+  if (!tpl) return <div className="loading">{t.loading}</div>;
 
   const sample = typeof tpl.sample_data === "string" ? JSON.parse(tpl.sample_data || "{}") : (tpl.sample_data || {});
   const name = lang === "uz" ? tpl.name_uz : tpl.name_ru;
@@ -585,20 +540,9 @@ function PreviewPage() {
 
       {/* Real template preview */}
       {TemplateComponent ? (
-        <ErrorBoundary>
-          <Suspense fallback={
-            <div className="inv-skeleton">
-              <div className="inv-skeleton-card">
-                <div className="skeleton-line w60"/>
-                <div className="skeleton-line w40" style={{height:48,borderRadius:12,marginTop:8}}/>
-                <div className="skeleton-line w80" style={{marginTop:20}}/>
-                <div className="skeleton-line w60" style={{marginTop:12}}/>
-              </div>
-            </div>
-          }>
-            <TemplateComponent data={sampleData} invitation={{}} onRespond={() => {}} sent={false} lang={lang} />
-          </Suspense>
-        </ErrorBoundary>
+        <Suspense fallback={<div className="loading">{t.loading}</div>}>
+          <TemplateComponent data={sampleData} onRespond={() => {}} sent={false} lang={lang} />
+        </Suspense>
       ) : (
         <div className="empty-state">
           <div className="empty-state-icon">📄</div>
@@ -761,7 +705,7 @@ function SharePage() {
       const formData = new FormData();
       formData.append('screenshot', screenshot);
       formData.append('invitation_uid', inv.uid);
-      const token = localStorage.getItem('tkn_token');
+      const token = storage.get('tkn_token');
       const r = await fetch("/api/payments/upload", {
         method: "POST", headers: { Authorization: `Bearer ${token}` }, body: formData,
       });
@@ -1007,20 +951,9 @@ function ViewInvPage() {
 
   if (TemplateComponent) {
     return (
-      <ErrorBoundary>
-        <Suspense fallback={
-          <div className="inv-skeleton">
-            <div className="inv-skeleton-card">
-              <div className="skeleton-line w60"/>
-              <div className="skeleton-line w40" style={{height:48,borderRadius:12,marginTop:8}}/>
-              <div className="skeleton-line w80" style={{marginTop:20}}/>
-              <div className="skeleton-line w60" style={{marginTop:12}}/>
-            </div>
-          </div>
-        }>
-          <TemplateComponent data={d} invitation={inv} onRespond={handleRespond} sent={sent} lang={lang} />
-        </Suspense>
-      </ErrorBoundary>
+      <Suspense fallback={<div className="loading">{t.loading}</div>}>
+        <TemplateComponent data={d} invitation={inv} onRespond={handleRespond} sent={sent} lang={lang} />
+      </Suspense>
     );
   }
 
@@ -1242,7 +1175,7 @@ function ProfileInvPage() {
 
 // ==================== ADMIN PAGE ====================
 function AdminPage() {
-  const [key, setKey] = useState(() => localStorage.getItem('admin_key') || '');
+  const [key, setKey] = useState(() => storage.get('admin_key') || '');
   const [auth, setAuth] = useState(false);
   const [stats, setStats] = useState(null);
   const [tpls, setTpls] = useState([]);
@@ -1266,7 +1199,7 @@ function AdminPage() {
       if(!r.ok){alert("Kalit noto'g'ri");return;}
       const d = await r.json();
       setStats(d);setAuth(true);
-      localStorage.setItem('admin_key',key);
+      storage.set('admin_key',key);
       loadAll();
     } catch{alert("Xatolik");}
   };
