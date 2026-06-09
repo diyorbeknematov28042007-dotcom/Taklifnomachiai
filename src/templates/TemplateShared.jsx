@@ -47,8 +47,8 @@ export function Countdown({ date, style = {}, itemStyle = {}, numStyle = {}, lbl
       {items.map((c, i) => (
         <div key={i} style={{
           width: 60, height: 60, borderRadius: '50%',
-          background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.25)',
+          background: 'rgba(255,255,255,0.22)', backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.3)',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           animation: `cdPop .6s ease ${i * 120}ms both`,
           ...itemStyle,
