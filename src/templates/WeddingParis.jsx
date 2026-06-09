@@ -98,7 +98,6 @@ export default function WeddingParis({ data, invitation, onRespond, sent }) {
   return (
     <div style={{ fontFamily: T.body, color: T.textLight, overflowX: 'hidden', background: T.bg }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');
         ${sharedKeyframes}
         @keyframes rainFall{0%{transform:translateY(-10vh);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(110vh);opacity:0}}
         @keyframes lanternPulse{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.15)}}
